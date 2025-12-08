@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gesseiros Pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    /* HERO MOBILE FIRST */
+    .hero {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 40px 15px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #667eea;
+    }
+
+    .btn-secondary {
+      border: 2px solid #fff;
+      color: #fff;
+    }
+
+    /* CONTAINER */
+    .container {
+      padding: 20px 10px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    /* FILTROS MOBILE */
+    .filtros {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .filtros input, .filtros select {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    /* CARDS MOBILE */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,.1);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .card-info {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .card-fotos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin: 10px 0;
+    }
+
+    .card-fotos img {
+      width: 100%;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .card-precos {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .preco-item {
+      border-bottom: 1px solid #ddd;
+      padding: 6px 0;
+    }
+
+    .preco-item:last-child {
+      border-bottom: none;
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: #fff;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: block;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,.9);
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .modal-content img {
+      width: 100%;
+    }
+
+    .modal-descricao {
+      padding: 15px;
+    }
+
+    .close {
+      color: #fff;
+      font-size: 30px;
+      position: absolute;
+      top: 10px;
+      right: 15px;
+    }
+
+    /* DESKTOP */
+    @media (min-width: 768px) {
+      .hero h1 { font-size: 40px; }
+      .hero p { font-size: 20px; }
+      .hero-buttons { flex-direction: row; justify-content: center; }
+      .cards { flex-direction: row; flex-wrap: wrap; }
+      .card { width: 48%; }
+    }
+
+    @media (min-width: 1100px) {
+      .card { width: 32%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>🏗️ Gesseiros Pro</h1>
+    <p>Os melhores profissionais de gesso perto de você</p>
+    <div class="hero-buttons">
+      <a href="#gesseiros" class="btn-primary">Encontrar Gesseiro</a>
+      <a href="login.html" class="btn-secondary">Sou Gesseiro</a>
+    </div>
+  </div>
+
+  <div id="gesseiros" class="container">
+    <h2 class="section-title">Profissionais</h2>
+    <p class="section-subtitle">Encontre o melhor para seu projeto</p>
+
+    <div class="filtros">
+      <input type="text" id="filtroCidade" placeholder="Buscar por cidade ou nome">
+      <select id="filtroOrdenacao">
+        <option value="">Ordenar</option>
+        <option value="nome">Nome</option>
+        <option value="cidade">Cidade</option>
+      </select>
+    </div>
+
+    <div id="listaGesseiros" class="cards"></div>
+  </div>
+
+  <div id="modalFoto" class="modal" onclick="fecharModal()">
+    <span class="close">&times;</span>
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <img id="modalImagem" />
+      <div class="modal-descricao">
+        <p id="modalTexto"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let todosGesseiros = [];
+
+    function abrirModal(url, descricao) {
+      modalFoto.style.display = 'block';
+      modalImagem.src = url;
+      modalTexto.textContent = descricao || 'Sem descrição';
+    }
+
+    function fecharModal() {
+      modalFoto.style.display = 'none';
+    }
+
+    async function carregarGesseiros() {
+      const res = await fetch('http://localhost:3000/api/gesseiros');
+      todosGesseiros = await res.json();
+      exibirTodosGesseiros(todosGesseiros);
+    }
+
+    function criarCard(gesseiro) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const whatsapp = gesseiro.telefone.replace(/\D/g, '');
+      const msg = encodeURIComponent(`Olá ${gesseiro.nome}, vi seu perfil na Gesseiros Pro!`);
+
+      card.innerHTML = `
+        <div class="card-header">
+          <h3>${gesseiro.nome}</h3>
+          <p>${gesseiro.cidade}</p>
+        </div>
+        <div class="card-body">
+          <div class="card-info">📱 ${gesseiro.telefone}</div>
+          <div class="card-info">💬 ${gesseiro.descricao || ''}</div>
+        
+          ${gesseiro.fotos ? `
+          <div class="card-fotos">
+            ${gesseiro.fotos.slice(0,3).map(f => `
+              <img src="http://localhost:3000/${f.url}" onclick="abrirModal('http://localhost:3000/${f.url}','${f.descricao || ''}')">
+            `).join('')}
+          </div>
+          ` : ''}
+
+          <a href="https://wa.me/55${whatsapp}?text=${msg}" target="_blank" class="btn-whatsapp">Chamar no WhatsApp</a>
+        </div>
+      `;
+
+      return card;
+    }
+
+    function exibirTodosGesseiros(lista) {
+      listaGesseiros.innerHTML = '';
+      lista.forEach(g => listaGesseiros.appendChild(criarCard(g)));
+    }
+
+    filtroCidade.addEventListener('input', e => {
+      const t = e.target.value.toLowerCase();
+      const filtrados = todosGesseiros.filter(g => g.nome.toLowerCase().includes(t) || g.cidade.toLowerCase().includes(t));
+      exibirTodosGesseiros(filtrados);
+    });
+
+    filtroOrdenacao.addEventListener('change', e => {
+      const criterio = e.target.value;
+      let lista = [...todosGesseiros];
+      if (criterio === 'nome') lista.sort((a,b)=>a.nome.localeCompare(b.nome));
+      if (criterio === 'cidade') lista.sort((a,b)=>a.cidade.localeCompare(b.cidade));
+      exibirTodosGesseiros(lista);
+    });
+
+    carregarGesseiros();
+  </script>
+</body>
+</html>

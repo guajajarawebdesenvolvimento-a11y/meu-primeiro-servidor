@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Gesseiro - FASE 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .btn-sair {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-sair:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .galeria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .foto-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .foto-item:hover {
+            transform: scale(1.05);
+        }
+
+        .foto-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .foto-descricao {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 30px 10px 10px;
+            font-size: 12px;
+        }
+
+        .foto-item .btn-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,0,0,0.9);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 800px;
+            animation: slideDown 0.3s;
+        }
+
+        .modal-content img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .modal-descricao {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+            color: #333;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .close:hover {
+            color: #f1f1f1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* TABELA DE SERVIÇOS */
+        .servicos-lista {
+            margin-top: 20px;
+        }
+
+        .servico-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .servico-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .servico-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .preco-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-right: 5px;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .badge-novo {
+            background: #ffc107;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .row, .row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                text-align: center;
+            }
+
+            .galeria {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .servico-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1 id="boasVindas">🏗️ Carregando...</h1>
+            <button class="btn-sair" onclick="sair()">🚪 Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alertaPrincipal" class="alert"></div>
+
+        <!-- SEÇÃO: EDITAR PERFIL -->
+        <div class="section">
+            <h2>✏️ Editar Perfil</h2>
+            <form id="formPerfil">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cidade">Cidade</label>
+                        <input type="text" id="cidade" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label for="telefone">Telefone/WhatsApp</label>
+                        <input type="tel" id="telefone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="instagram">Instagram</label>
+                        <input type="text" id="instagram" placeholder="@seuperfil">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição Profissional</label>
+                    <textarea id="descricao" required></textarea>
+                </div>
+                <button type="submit" class="btn">💾 Salvar Alterações</button>
+            </form>
+        </div>
+
+        <!-- SEÇÃO: SERVIÇOS E PREÇOS -->
+        <div class="section">
+            <h2>💰 Meus Serviços e Preços <span class="badge-novo">NOVO!</span></h2>
+            <p style="color: #666; margin-bottom: 20px;">Cadastre os serviços que você oferece com preços detalhados</p>
+            <form id="formServico">
+                <div class="row-3">
+                    <div class="form-group">
+                        <label for="nomeServico">Nome do Serviço</label>
+                        <input type="text" id="nomeServico" placeholder="Ex: Reboco de Gesso" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="precoComMaterial">Com Material (R$)</label>
+                        <input type="number" id="precoComMaterial" step="0.01" placeholder="35.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="precoSemMaterial">Sem Material (R$)</label>
+                        <input type="number" id="precoSemMaterial" step="0.01" placeholder="25.00" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label for="unidade">Unidade</label>
+                        <select id="unidade" required>
+                            <option value="m²">Por m² (metro quadrado)</option>
+                            <option value="m">Por m (metro linear)</option>
+                            <option value="serviço">Por serviço completo</option>
+                            <option value="hora">Por hora</option>
+                            <option value="dia">Por dia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="distanciaMaxima">Distância Máxima (km)</label>
+                        <input type="number" id="distanciaMaxima" value="50" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">➕ Adicionar Serviço</button>
+            </form>
+
+            <div class="servicos-lista" id="servicosLista"></div>
+        </div>
+
+        <!-- SEÇÃO: UPLOAD DE FOTOS -->
+        <div class="section">
+            <h2>📷 Adicionar Fotos do Portfólio</h2>
+            <form id="formFoto">
+                <div class="form-group">
+                    <label for="foto">Selecione uma foto do seu trabalho</label>
+                    <input type="file" id="foto" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="descricaoFoto">Descrição da Foto <span class="badge-novo">NOVO!</span></label>
+                    <textarea id="descricaoFoto" placeholder="Ex: Sala de estar 40m² com sanca e iluminação LED embutida" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn">⬆️ Upload Foto</button>
+            </form>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Suas Fotos:</h3>
+            <div id="galeria" class="galeria"></div>
+        </div>
+
+        <!-- SEÇÃO: ESTATÍSTICAS -->
+        <div class="section">
+            <h2>📊 Estatísticas</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="totalFotos">0</h3>
+                    <p>Fotos no Portfólio</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="totalServicos">0</h3>
+                    <p>Serviços Cadastrados</p>
+                </div>
+                <div class="stat-card">
+                    <h3>🔜</h3>
+                    <p>Em Breve: Visualizações</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE FOTO -->
+    <div id="modalFoto" class="modal" onclick="fecharModal()">
+        <span class="close">&times;</span>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modalImagem" src="" alt="Foto">
+            <div class="modal-descricao">
+                <h3>📝 Descrição</h3>
+                <p id="modalTexto"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const gesseiroId = localStorage.getItem('gesseiroId');
+        const nomeGesseiro = localStorage.getItem('nomeGesseiro');
+
+        if (!token || !gesseiroId) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('boasVindas').textContent = `Olá, ${nomeGesseiro}! 🎉`;
+
+        function mostrarAlerta(mensagem, tipo) {
+            const alerta = document.getElementById('alertaPrincipal');
+            alerta.textContent = mensagem;
+            alerta.className = `alert ${tipo}`;
+            alerta.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                alerta.style.display = 'none';
+            }, 5000);
+        }
+
+        function sair() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // MODAL DE FOTO
+        function abrirModal(url, descricao) {
+            document.getElementById('modalImagem').src = url;
+            document.getElementById('modalTexto').textContent = descricao || 'Sem descrição';
+            document.getElementById('modalFoto').style.display = 'block';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalFoto').style.display = 'none';
+        }
+
+        // CARREGAR PERFIL
+        async function carregarPerfil() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}`);
+                const data = await response.json();
+
+                document.getElementById('nome').value = data.nome;
+                document.getElementById('cidade').value = data.cidade;
+                document.getElementById('telefone').value = data.telefone;
+                document.getElementById('instagram').value = data.instagram || '';
+                document.getElementById('descricao').value = data.descricao;
+            } catch (error) {
+                mostrarAlerta('Erro ao carregar perfil', 'error');
+            }
+        }
+
+        // SALVAR PERFIL
+        document.getElementById('formPerfil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const dados = {
+                nome: document.getElementById('nome').value,
+                cidade: document.getElementById('cidade').value,
+                telefone: document.getElementById('telefone').value,
+                instagram: document.getElementById('instagram').value,
+                descricao: document.getElementById('descricao').value
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('nomeGesseiro', dados.nome);
+                    document.getElementById('boasVindas').textContent = `Olá, ${dados.nome}! 🎉`;
+                    mostrarAlerta('✅ Perfil atualizado com sucesso!', 'success');
+                } else {
+                    mostrarAlerta('❌ Erro ao atualizar perfil', 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
+            }
+        });
+
+        // ADICIONAR SERVIÇO
+        document.getElementById('formServico').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const dados = {
+                nome_servico: document.getElementById('nomeServico').value,
+                preco_com_material: parseFloat(document.getElementById('precoComMaterial').value),
+                preco_sem_material: parseFloat(document.getElementById('precoSemMaterial').value),
+                unidade: document.getElementById('unidade').value,
+                distancia_maxima: parseInt(document.getElementById('distanciaMaxima').value)
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Serviço adicionado com sucesso!', 'success');
+                    document.getElementById('formServico').reset();
+                    document.getElementById('distanciaMaxima').value = 50;
+                    carregarServicos();
+                } else {
+                    mostrarAlerta('❌ Erro ao adicionar serviço', 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
+            }
+        });
+
+        // CARREGAR SERVIÇOS
+        async function carregarServicos() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos`);
+                const servicos = await response.json();
+
+                const container = document.getElementById('servicosLista');
+                container.innerHTML = '';
+
+                document.getElementById('totalServicos').textContent = servicos.length;
+
+                if (servicos.length === 0) {
+                    container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nenhum serviço cadastrado ainda</p>';
+                    return;
+                }
+
+                servicos.forEach(servico => {
+                    const div = document.createElement('div');
+                    div.className = 'servico-item';
+                    div.innerHTML = `
+                        <div class="servico-info">
+                            <h4>${servico.nome_servico}</h4>
+                            <p>
+                                <span class="preco-badge">Com Material: R$ ${servico.preco_com_material.toFixed(2)}/${servico.unidade}</span>
+                                <span class="preco-badge" style="background: #17a2b8;">Sem Material: R$ ${servico.preco_sem_material.toFixed(2)}/${servico.unidade}</span>
+                            </p>
+                            <p style="font-size: 13px; margin-top: 5px;">📍 Atende até ${servico.distancia_maxima}km de distância</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="deletarServico(${servico.id})">🗑️ Excluir</button>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar serviços:', error);
+            }
+        }
+
+        // DELETAR SERVIÇO
+        async function deletarServico(servicoId) {
+            if (!confirm('Deseja realmente excluir este serviço?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos/${servicoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Serviço excluído com sucesso!', 'success');
+                    carregarServicos();
+                } else {
+                    mostrarAlerta('❌ Erro ao excluir serviço', 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
+            }
+        }
+
+        // UPLOAD DE FOTO COM DESCRIÇÃO
+        document.getElementById('formFoto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const fotoInput = document.getElementById('foto');
+            const descricao = document.getElementById('descricaoFoto').value;
+
+            formData.append('foto', fotoInput.files[0]);
+            formData.append('descricao', descricao);
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Foto adicionada com sucesso!', 'success');
+                    document.getElementById('formFoto').reset();
+                    carregarFotos();
+                } else {
+                    mostrarAlerta('❌ Erro ao fazer upload da foto', 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
+            }
+        });
+
+        // CARREGAR FOTOS
+        async function carregarFotos() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos`);
+                const fotos = await response.json();
+
+                const galeria = document.getElementById('galeria');
+                galeria.innerHTML = '';
+
+                document.getElementById('totalFotos').textContent = fotos.length;
+
+                if (fotos.length === 0) {
+                    galeria.innerHTML = '<p style="color: #999; text-align: center; padding: 20px; grid-column: 1/-1;">Nenhuma foto ainda</p>';
+                    return;
+                }
+
+                fotos.forEach(foto => {
+                    const div = document.createElement('div');
+                    div.className = 'foto-item';
+                    div.innerHTML = `
+                        <img src="http://localhost:3000/${foto.url}" alt="Trabalho" onclick="abrirModal('http://localhost:3000/${foto.url}', '${foto.descricao || ''}')">
+                        <div class="foto-descricao">${foto.descricao || 'Sem descrição'}</div>
+                        <button class="btn-delete" onclick="event.stopPropagation(); deletarFoto(${foto.id})">🗑️</button>
+                    `;
+                    galeria.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar fotos:', error);
+            }
+        }
+
+        // DELETAR FOTO
+        async function deletarFoto(fotoId) {
+            if (!confirm('Deseja realmente excluir esta foto?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos/${fotoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    mostrarAlerta('✅ Foto excluída com sucesso!', 'success');
+                    carregarFotos();
+                } else {
+                    mostrarAlerta('❌ Erro ao excluir foto', 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
+            }
+        }
+
+        // INICIALIZAR
+        carregarPerfil();
+        carregarFotos();
+        carregarServicos();
+    </script>
+</body>
+</html>

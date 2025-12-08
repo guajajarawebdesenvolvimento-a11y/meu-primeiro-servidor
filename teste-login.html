@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Sistema de Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            white-space: pre-line;
+        }
+
+        .resultado.sucesso {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .resultado.erro {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .resultado.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .token-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            word-break: break-all;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .divider {
+            margin: 30px 0;
+            text-align: center;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+            z-index: -1;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+        }
+
+        small {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Teste de Login</h1>
+        <p class="subtitle">Sistema de autenticação com JWT</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="mostrarAba('cadastro')">📝 Cadastro</button>
+            <button class="tab" onclick="mostrarAba('login')">🔑 Login</button>
+            <button class="tab" onclick="mostrarAba('teste')">🧪 Testar</button>
+        </div>
+
+        <!-- ABA DE CADASTRO -->
+        <div id="cadastro" class="form-section active">
+            <form onsubmit="cadastrarUsuario(event)">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="cadastro-email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="cadastro-senha" placeholder="Mínimo 6 caracteres" required>
+                </div>
+
+                <div class="form-group">
+                    <label>ID do Gesseiro (opcional):</label>
+                    <input type="number" id="cadastro-gesseiro" placeholder="1, 2, 3...">
+                    <small>Deixe vazio se não tiver gesseiro ainda</small>
+                </div>
+
+                <button type="submit">Cadastrar Usuário</button>
+            </form>
+        </div>
+
+        <!-- ABA DE LOGIN -->
+        <div id="login" class="form-section">
+            <form onsubmit="fazerLogin(event)">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="login-senha" placeholder="Sua senha" required>
+                </div>
+
+                <button type="submit">Fazer Login</button>
+            </form>
+        </div>
+
+        <!-- ABA DE TESTE -->
+        <div id="teste" class="form-section">
+            <p style="color: #666; margin-bottom: 20px;">
+                Use o token recebido no login para testar rotas protegidas.
+            </p>
+
+            <button onclick="testarRotaProtegida()">🔒 Testar Autenticação</button>
+            
+            <button onclick="buscarMeuPerfil()">👤 Buscar Meu Perfil</button>
+            
+            <button onclick="testarEdicao()">✏️ Testar Edição (Seu Gesseiro)</button>
+
+            <button onclick="testarEdicaoOutro()">❌ Tentar Editar Outro (Deve Bloquear)</button>
+
+            <button onclick="testarSemToken()">🚫 Tentar Sem Token (Deve Bloquear)</button>
+
+            <div class="divider"><span>ou</span></div>
+
+            <button onclick="limparToken()" style="background: #dc3545;">🗑️ Limpar Token</button>
+        </div>
+
+        <!-- ÁREA DE RESULTADOS -->
+        <div id="resultado" class="resultado"></div>
+
+        <!-- INFORMAÇÕES DO TOKEN -->
+        <div id="token-info" class="token-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let tokenAtual = localStorage.getItem('token');
+
+        // Mostrar token salvo ao carregar
+        if (tokenAtual) {
+            mostrarToken();
+        }
+
+        function mostrarAba(aba) {
+            // Remover active de todas as abas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+
+            // Ativar aba clicada
+            event.target.classList.add('active');
+            document.getElementById(aba).classList.add('active');
+
+            // Limpar resultado
+            esconderResultado();
+        }
+
+        async function cadastrarUsuario(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('cadastro-email').value;
+            const senha = document.getElementById('cadastro-senha').value;
+            const gesseiroId = document.getElementById('cadastro-gesseiro').value || null;
+
+            mostrarResultado('Cadastrando usuário...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/cadastrar-usuario`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha, gesseiroId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarResultado(`✅ ${data.mensagem}\n🆔 ID do usuário: ${data.usuarioId}`, 'sucesso');
+                    e.target.reset();
+                } else {
+                    mostrarResultado(`❌ ${data.erro}`, 'erro');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function fazerLogin(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+
+            mostrarResultado('Fazendo login...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    tokenAtual = data.token;
+                    localStorage.setItem('token', tokenAtual);
+                    
+                    mostrarResultado(
+                        `✅ ${data.mensagem}\n` +
+                        `👤 Email: ${data.usuario.email}\n` +
+                        `🆔 ID: ${data.usuario.id}\n` +
+                        `👷 Gesseiro ID: ${data.usuario.gesseiroId || 'Não vinculado'}`,
+                        'sucesso'
+                    );
+
+                    mostrarToken();
+                    e.target.reset();
+                } else {
+                    mostrarResultado(`❌ ${data.erro}`, 'erro');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function testarRotaProtegida() {
+            if (!tokenAtual) {
+                mostrarResultado('❌ Você precisa fazer login primeiro!', 'erro');
+                return;
+            }
+
+            mostrarResultado('Testando rota protegida...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/perfil`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokenAtual}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarResultado(
+                        `✅ ${data.mensagem}\n` +
+                        `🆔 Usuário ID: ${data.usuarioId}\n` +
+                        `👷 Gesseiro ID: ${data.gesseiroId || 'Não vinculado'}`,
+                        'sucesso'
+                    );
+                } else {
+                    mostrarResultado(`❌ ${data.erro}`, 'erro');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function buscarMeuPerfil() {
+            if (!tokenAtual) {
+                mostrarResultado('❌ Você precisa fazer login primeiro!', 'erro');
+                return;
+            }
+
+            mostrarResultado('Buscando seu perfil...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/meu-perfil`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokenAtual}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarResultado(
+                        `✅ Seus dados:\n` +
+                        `👤 Nome: ${data.gesseiro.nome}\n` +
+                        `📍 Cidade: ${data.gesseiro.cidade}\n` +
+                        `📞 Telefone: ${data.gesseiro.telefone}\n` +
+                        `📧 Email: ${data.gesseiro.email}`,
+                        'sucesso'
+                    );
+                } else {
+                    mostrarResultado(`❌ ${data.erro}`, 'erro');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function testarEdicao() {
+            if (!tokenAtual) {
+                mostrarResultado('❌ Você precisa fazer login primeiro!', 'erro');
+                return;
+            }
+
+            mostrarResultado('Tentando editar seu gesseiro...', 'info');
+
+            try {
+                // Primeiro busca o ID do gesseiro logado
+                const perfilResponse = await fetch(`${API_URL}/perfil`, {
+                    headers: { 'Authorization': `Bearer ${tokenAtual}` }
+                });
+                const perfil = await perfilResponse.json();
+
+                if (!perfil.gesseiroId) {
+                    mostrarResultado('❌ Você não tem um gesseiro vinculado!', 'erro');
+                    return;
+                }
+
+                // Agora tenta editar
+                const response = await fetch(`${API_URL}/gesseiros/${perfil.gesseiroId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenAtual}`
+                    },
+                    body: JSON.stringify({
+                        nome: 'Nome Editado Teste',
+                        cidade: 'Cidade Teste',
+                        telefone: '(85) 99999-9999',
+                        email: 'editado@teste.com',
+                        instagram: '@editado',
+                        descricao: 'Descrição editada via teste!'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarResultado(`✅ Sucesso! Você conseguiu editar SEU gesseiro!\n${data.mensagem}`, 'sucesso');
+                } else {
+                    mostrarResultado(`❌ ${data.erro}`, 'erro');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function testarEdicaoOutro() {
+            if (!tokenAtual) {
+                mostrarResultado('❌ Você precisa fazer login primeiro!', 'erro');
+                return;
+            }
+
+            mostrarResultado('Tentando editar gesseiro de OUTRO usuário (ID: 999)...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/gesseiros/999`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenAtual}`
+                    },
+                    body: JSON.stringify({
+                        nome: 'Tentando Hackear',
+                        cidade: 'Hacker City',
+                        telefone: '(00) 00000-0000',
+                        email: 'hack@teste.com'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 403) {
+                    mostrarResultado(`✅ BLOQUEADO com sucesso!\n❌ ${data.erro}`, 'sucesso');
+                } else if (response.ok) {
+                    mostrarResultado(`❌ FALHA DE SEGURANÇA! Você conseguiu editar outro gesseiro!`, 'erro');
+                } else {
+                    mostrarResultado(`ℹ️ ${data.erro}`, 'info');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        async function testarSemToken() {
+            mostrarResultado('Tentando editar SEM estar logado...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/gesseiros/1`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // SEM TOKEN!
+                    },
+                    body: JSON.stringify({
+                        nome: 'Sem Autenticação',
+                        cidade: 'Teste',
+                        telefone: '(00) 00000-0000'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 401) {
+                    mostrarResultado(`✅ BLOQUEADO com sucesso!\n❌ ${data.erro}`, 'sucesso');
+                } else if (response.ok) {
+                    mostrarResultado(`❌ FALHA DE SEGURANÇA! Conseguiu editar sem token!`, 'erro');
+                } else {
+                    mostrarResultado(`ℹ️ ${data.erro}`, 'info');
+                }
+            } catch (erro) {
+                mostrarResultado(`❌ Erro: ${erro.message}`, 'erro');
+            }
+        }
+
+        function limparToken() {
+            tokenAtual = null;
+            localStorage.removeItem('token');
+            document.getElementById('token-info').style.display = 'none';
+            mostrarResultado('🗑️ Token removido!', 'info');
+        }
+
+        function mostrarToken() {
+            if (tokenAtual) {
+                const tokenInfo = document.getElementById('token-info');
+                tokenInfo.innerHTML = `
+                    <strong>🔑 Token JWT salvo:</strong><br>
+                    <div style="margin-top: 10px; font-size: 10px;">${tokenAtual}</div>
+                `;
+                tokenInfo.style.display = 'block';
+            }
+        }
+
+        function mostrarResultado(mensagem, tipo) {
+            const div = document.getElementById('resultado');
+            div.textContent = mensagem;
+            div.className = `resultado ${tipo}`;
+            div.style.display = 'block';
+        }
+
+        function esconderResultado() {
+            document.getElementById('resultado').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+🔹 FASE 1 - Fundação Visual (INICIADA)
+Tempo: 1 dia
+O que vamos fazer:
+
+✅ Modal de fotos com zoom
+✅ Campo de descrição nas fotos
+✅ Sistema básico de preços (com/sem material)
+✅ Melhorar visual dos cards
+
+
+NAO ESTA CONSEGUINDO ENVIAR FOTOS COM DESCRIÇÃO APARECE O SEGUINTE ERRO: 
+
+Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+
+
+TESTE FEITOS: 
+
+localStorage.getItem("token")
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJnZXNzZWlyb0lkIjoxLCJlbWFpbCI6ImNyaXN0b3JtMTJAZ21haWwuY29tIiwiaWF0IjoxNzY1MDQ5NjkwLCJleHAiOjE3NjU2NTQ0OTB9.2EySWurxLqWd4BVp_P-MdmpeUIGx57A9Hci9DF8Gvzo'
+
+
+Por que começar aqui?
+
+São melhorias diretas no que já existe
+Não precisa de APIs externas
+Resultado visual imediato
+Base para as próximas fases
+
+
+🔹 FASE 2 - Sistema de Preços Completo (DEPOIS DA FASE 1)
+Tempo: 1 dia
+O que vamos fazer:
+
+✅ Cadastro de múltiplos serviços
+✅ Preço com/sem material
+✅ Distância máxima de atendimento
+✅ Exibição organizada na página inicial
+
+Por que essa ordem?
+
+Funcionalidade muito importante para conversão
+Não depende de APIs externas
+Cliente já pode ver preços detalhados
+
+
+🔹 FASE 3 - Localização com Google Maps (IMPORTANTE!)
+Tempo: 2 dias
+O que vamos fazer:
+
+✅ Integrar Google Maps API
+✅ Cadastro de endereço do gesseiro
+✅ Mapa no card
+✅ Cálculo de distância
+✅ Filtro por raio de atendimento
+
+O que você precisa fazer:
+
+Criar conta no Google Cloud (te ajudo)
+Ativar as APIs (te passo o passo a passo)
+Gerar API Key
+
+
+🔹 FASE 4 - Sistema de Avaliações (CREDIBILIDADE)
+Tempo: 2 dias
+O que vamos fazer:
+
+✅ Sistema de avaliação (1-5 estrelas)
+✅ Comentários
+✅ Média de avaliações no card
+✅ Modal com todas avaliações
+✅ Formulário público para avaliar
+
+Por que aqui?
+
+Gera confiança nos clientes
+Melhora o SEO do gesseiro
+Diferencial competitivo
+
+
+🔹 FASE 5 - Perguntas & Respostas (INTERAÇÃO)
+Tempo: 1-2 dias
+O que vamos fazer:
+
+✅ Formulário de perguntas
+✅ Painel para gesseiro responder
+✅ Exibição pública de Q&A
+✅ Notificação de novas perguntas
+
+
+🔹 FASE 6 - Modal Completo & Polimento (FINALIZAÇÃO)
+Tempo: 1-2 dias
+O que vamos fazer:
+
+✅ Modal grande com TODAS informações
+✅ Galeria de fotos
+✅ Estatísticas avançadas
+✅ Melhorias de UX
+✅ Responsividade mobile
+✅ Animações
+
+
+🎯 CRONOGRAMA REALISTA
+SEMANA 1
+├─ Dia 1-2: Fase 1 (Modal + Descrição fotos)
+├─ Dia 3-4: Fase 2 (Sistema de Preços)
+└─ Dia 5-6: Você cria conta Google Maps
+
+SEMANA 2
+├─ Dia 1-2: Fase 3 (Google Maps)
+├─ Dia 3-4: Fase 4 (Avaliações)
+└─ Dia 5-6: Fase 5 (Perguntas)
+
+SEMANA 3
+└─ Dia 1-2: Fase 6 (Polimento final)
+Total: ~15-20 dias de desenvolvimento
+
+💡 MINHA RECOMENDAÇÃO FINAL
+COMECE HOJE COM A FASE 1
+Vou criar agora:
+
+Modal de fotos com zoom
+Campo de descrição nas fotos
+Sistema básico de preços (2 campos: com/sem material)
+Melhorias visuais
+
+Você testa e aprova, depois passamos para Fase 2.
+
+⚡ VANTAGENS DESSA ABORDAGEM
+✅ Resultados rápidos - Em 2 dias já tem melhorias visíveis
+✅ Baixo risco - Se algo der errado, não afeta o resto
+✅ Flexível - Podemos ajustar prioridades
+✅ Sustentável - Não vou te entregar um código bagunçado
+✅ Educativo - Você aprende cada parte

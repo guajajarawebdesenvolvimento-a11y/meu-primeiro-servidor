@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Gesseiro - Plataforma</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .links a:hover {
+            color: #764ba2;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Cadastro de Gesseiro</h1>
+            <p>Preencha seus dados para começar a receber clientes</p>
+        </div>
+
+        <div id="alerta" class="alert"></div>
+
+        <form id="formCadastro">
+            <div class="form-group">
+                <label for="nome">👤 Nome Completo</label>
+                <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="José da Silva">
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="cidade">📍 Cidade</label>
+                    <input type="text" id="cidade" name="cidade" autocomplete="address-level2" required placeholder="São Paulo">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">📱 Telefone/WhatsApp</label>
+                    <input type="tel" id="telefone" name="telefone" autocomplete="tel" required placeholder="(11) 99999-9999">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" required placeholder="seu@email.com">
+                <div class="help-text">Use um email válido para fazer login</div>
+            </div>
+
+            <div class="form-group">
+                <label for="instagram">📷 Instagram (opcional)</label>
+                <input type="text" id="instagram" name="instagram" autocomplete="off" placeholder="@seuperfil">
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">📝 Descrição Profissional</label>
+                <textarea id="descricao" name="descricao" required placeholder="Fale sobre sua experiência, especialidades e diferenciais..."></textarea>
+                <div class="help-text">Conte aos clientes por que escolher você</div>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">🔒 Criar Senha</label>
+                <input type="password" id="senha" name="senha" autocomplete="new-password" required placeholder="Mínimo 6 caracteres">
+            </div>
+
+            <div class="form-group">
+                <label for="senhaConfirm">🔒 Confirmar Senha</label>
+                <input type="password" id="senhaConfirm" name="senhaConfirm" autocomplete="new-password" required placeholder="Digite a senha novamente">
+            </div>
+
+            <button type="submit" class="btn">Criar Minha Conta</button>
+        </form>
+
+        <div class="links">
+            <p style="margin-bottom: 10px; color: #666;">Já tem uma conta?</p>
+            <a href="login.html">Fazer Login</a>
+        </div>
+    </div>
+
+    <script>
+        const formCadastro = document.getElementById('formCadastro');
+        const alerta = document.getElementById('alerta');
+
+        function mostrarAlerta(mensagem, tipo) {
+            alerta.textContent = mensagem;
+            alerta.className = `alert ${tipo}`;
+            alerta.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                alerta.style.display = 'none';
+            }, 5000);
+        }
+
+        formCadastro.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const senha = document.getElementById('senha').value;
+            const senhaConfirm = document.getElementById('senhaConfirm').value;
+
+            if (senha !== senhaConfirm) {
+                mostrarAlerta('❌ As senhas não coincidem!', 'error');
+                return;
+            }
+
+            if (senha.length < 6) {
+                mostrarAlerta('❌ A senha deve ter no mínimo 6 caracteres', 'error');
+                return;
+            }
+
+            const dados = {
+                nome: document.getElementById('nome').value,
+                cidade: document.getElementById('cidade').value,
+                telefone: document.getElementById('telefone').value,
+                email: document.getElementById('email').value,
+                instagram: document.getElementById('instagram').value,
+                descricao: document.getElementById('descricao').value,
+                senha: senha
+            };
+
+            try {
+                // CORRIGIDO: endpoint correto
+                const response = await fetch('http://localhost:3000/api/cadastro-completo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Salvar dados no localStorage
+                    if (data.token) localStorage.setItem('token', data.token);
+                    if (data.gesseiroId) localStorage.setItem('gesseiroId', data.gesseiroId);
+                    if (data.nome) localStorage.setItem('nomeGesseiro', data.nome);
+                    
+                    mostrarAlerta('✅ Cadastro realizado com sucesso!', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'painel-gesseiro.html';
+                    }, 1500);
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao conectar com o servidor', 'error');
+                console.error('Erro:', error);
+            }
+        });
+    </script>
+</body>
+</html>

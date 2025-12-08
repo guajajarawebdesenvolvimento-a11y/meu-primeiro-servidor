@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeuGesseiro - Conectando você aos melhores profissionais</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* HERO / INTRO */
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 20px 60px 20px;
+    text-align: center;
+}
+.hero h1 {
+    font-size: 42px;
+    margin-bottom: 20px;
+    animation: fadeInDown 0.8s;
+}
+.hero p {
+    font-size: 20px;
+    margin-bottom: 30px;
+    opacity: 0.95;
+    animation: fadeInUp 0.8s;
+}
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 1s;
+}
+.btn-primary, .btn-secondary {
+    padding: 15px 35px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary {
+    background: #ffc107;
+    color: #333;
+}
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.btn-secondary {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid white;
+}
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* CONTAINER */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+.section-title {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 15px;
+    color: #333;
+}
+.section-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 50px;
+    font-size: 18px;
+}
+
+/* COMO FUNCIONA */
+.how-it-works {
+    background: #f8f9fa;
+    padding: 50px 20px;
+    border-radius: 15px;
+    margin-bottom: 50px;
+}
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    text-align: center;
+}
+.step-number {
+    background: #667eea;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+}
+.step-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+.step-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.step-desc {
+    font-size: 14px;
+    color: #555;
+}
+
+/* FILTROS */
+.filtros {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    margin-bottom: 40px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+.filtros input, .filtros select {
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    flex: 1;
+    min-width: 200px;
+}
+.filtros input:focus, .filtros select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* CARDS */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+.card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.card-header img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+}
+.card-header h3 {
+    font-size: 22px;
+}
+.card-header p {
+    opacity: 0.9;
+    font-size: 14px;
+}
+.card-body {
+    padding: 20px;
+}
+.card-info {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.stars {
+    color: #ffc107;
+    margin-left: 5px;
+}
+.card-fotos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin: 15px 0;
+}
+.card-fotos img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.card-fotos img:hover {
+    transform: scale(1.05);
+}
+.card-precos {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+}
+.card-precos h4 {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.preco-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+}
+.preco-item:last-child {
+    border-bottom: none;
+}
+.preco-nome { font-weight: 600; color: #333; }
+.preco-valores { text-align: right; }
+.preco-com { color: #28a745; font-size: 12px; }
+.preco-sem { color: #17a2b8; font-size: 12px; }
+.btn-whatsapp {
+    width: 100%;
+    padding: 12px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+.btn-whatsapp:hover { background: #20BA5A; }
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    animation: fadeIn 0.3s;
+}
+.modal-content {
+    position: relative;
+    margin: 5% auto;
+    max-width: 800px;
+    animation: slideDown 0.3s;
+}
+.modal-content img {
+    width: 100%;
+    border-radius: 10px;
+}
+.modal-descricao {
+    background: white;
+    padding: 20px;
+    border-radius: 0 0 10px 10px;
+    color: #333;
+}
+.modal-descricao h3 { margin-bottom: 10px; }
+.close {
+    position: absolute;
+    top: 15px; right: 25px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1001;
+}
+.close:hover { color: #f1f1f1; }
+
+@keyframes slideDown { from { transform: translateY(-50px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+
+@media (max-width: 768px){
+    .hero h1 { font-size: 32px; }
+    .hero p { font-size: 18px; }
+    .cards { grid-template-columns: 1fr; }
+    .filtros { flex-direction: column; }
+    .filtros input, .filtros select { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO / INTRO -->
+<div class="hero">
+    <h1>🏗️ SeuGesseiro</h1>
+    <p>Encontre os melhores profissionais de gesso da sua região de forma rápida, segura e confiável. <br> Orçamentos gratuitos e profissionais verificados!</p>
+    <div class="hero-buttons">
+        <a href="#gesseiros" class="btn-primary">🔍 Encontrar Gesseiro</a>
+        <a href="login.html" class="btn-secondary">👷 Sou Gesseiro - Entrar</a>
+    </div>
+</div>
+
+<!-- COMO FUNCIONA -->
+<div class="how-it-works container">
+    <h2 class="section-title">Como Funciona</h2>
+    <p class="section-subtitle">Basta seguir 3 passos simples para contratar um profissional de confiança</p>
+    <div class="steps">
+        <div>
+            <div class="step-number"><span class="step-icon">🔍</span></div>
+            <div class="step-title">Buscar Profissionais</div>
+            <div class="step-desc">Filtre por cidade, especialidade e veja fotos de trabalhos anteriores.</div>
+        </div>
+        <div>
+            <div class="step-number"><span class="step-icon">⚖️</span></div>
+            <div class="step-title">Comparar Preços</div>
+            <div class="step-desc">Veja os valores com e sem material e escolha o melhor orçamento.</div>
+        </div>
+        <div>
+            <div class="step-number"><span class="step-icon">💬</span></div>
+            <div class="step-title">Entrar em Contato</div>
+            <div class="step-desc">Chame diretamente pelo WhatsApp e negocie com segurança.</div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTROS -->
+<div id="gesseiros" class="container">
+    <h2 class="section-title">📋 Todos os Profissionais</h2>
+    <p class="section-subtitle">Encontre o gesseiro ideal para seu projeto</p>
+
+    <div class="filtros">
+        <input type="text" id="filtroCidade" placeholder="🔍 Buscar por cidade...">
+        <input type="text" id="filtroEspecialidade" placeholder="🔍 Buscar por especialidade...">
+        <select id="filtroOrdenacao">
+            <option value="">Ordenar por...</option>
+            <option value="nome">Nome A-Z</option>
+            <option value="cidade">Cidade</option>
+        </select>
+    </div>
+
+    <div id="listaGesseiros" class="cards"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modalFoto" class="modal" onclick="fecharModal()">
+    <span class="close">&times;</span>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modalImagem" src="" alt="Foto">
+        <div class="modal-descricao">
+            <h3>📝 Descrição</h3>
+            <p id="modalTexto"></p>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <div class="footer-content">
+        <h3>🏗️ SeuGesseiro</h3>
+        <p>A plataforma que conecta profissionais e clientes</p>
+        <div class="footer-links">
+            <a href="login.html">Área do Gesseiro</a>
+            <a href="cadastro-gesseiro.html">Cadastre-se</a>
+            <a href="#">Sobre</a>
+            <a href="#">Contato</a>
+        </div>
+        <p style="margin-top: 30px; opacity: 0.7;">© 2025 SeuGesseiro - Todos os direitos reservados</p>
+    </div>
+</div>
+
+<script>
+let todosGesseiros = [];
+
+// MODAL
+function abrirModal(url, descricao) {
+    document.getElementById('modalImagem').src = url;
+    document.getElementById('modalTexto').textContent = descricao || 'Sem descrição';
+    document.getElementById('modalFoto').style.display = 'block';
+}
+function fecharModal() {
+    document.getElementById('modalFoto').style.display = 'none';
+}
+
+// CARREGAR GESSEIROS
+async function carregarGesseiros() {
+    try {
+        const response = await fetch('/api/gesseiros');
+        todosGesseiros = await response.json();
+        exibirTodosGesseiros(todosGesseiros);
+    } catch (error) {
+        console.error('Erro ao carregar gesseiros:', error);
+    }
+}
+
+function exibirTodosGesseiros(gesseiros) {
+    const container = document.getElementById('listaGesseiros');
+    container.innerHTML = '';
+    if (gesseiros.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;">Nenhum gesseiro encontrado</p>';
+        return;
+    }
+    gesseiros.forEach(gesseiro => container.appendChild(criarCard(gesseiro)));
+}
+
+function criarCard(gesseiro) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const whatsappLink = gesseiro.telefone.replace(/\D/g,'');
+    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, encontrei seu perfil na SeuGesseiro e gostaria de um orçamento!`);
+    let instagramUsername = gesseiro.instagram ? gesseiro.instagram.replace('@','').trim() : '';
+
+    // Avaliação em estrelas
+    let estrelasHTML = '';
+    if(gesseiro.avaliacao) {
+        const qtd = Math.round(gesseiro.avaliacao);
+        estrelasHTML = '⭐'.repeat(qtd) + '☆'.repeat(5-qtd);
+    }
+
+    // Especialidades
+    let especialidadesHTML = '';
+    if(gesseiro.especialidades && gesseiro.especialidades.length>0) {
+        especialidadesHTML = `<div class="card-info">🛠️ ${gesseiro.especialidades.join(', ')}</div>`;
+    }
+
+    let precosHTML = '';
+    if (gesseiro.servicos && gesseiro.servicos.length > 0) {
+        const servicosHTML = gesseiro.servicos.map(s => `
+            <div class="preco-item">
+                <span class="preco-nome">${s.nome_servico}</span>
+                <div class="preco-valores">
+                    <div class="preco-com">✅ Com material: R$ ${parseFloat(s.preco_com_material).toFixed(2)}/${s.unidade}</div>
+                    <div class="preco-sem">⚙️ Sem material: R$ ${parseFloat(s.preco_sem_material).toFixed(2)}/${s.unidade}</div>
+                </div>
+            </div>
+        `).join('');
+        precosHTML = `<div class="card-precos"><h4>💰 Preços dos Serviços</h4>${servicosHTML}</div>`;
+    }
+
+    card.innerHTML = `
+        <div class="card-header">
+            ${gesseiro.foto ? `<img src="/${gesseiro.foto}" alt="${gesseiro.nome}">` : ''}
+            <h3>${gesseiro.nome}</h3>
+            <p>📍 ${gesseiro.cidade}</p>
+            ${estrelasHTML ? `<div class="stars">${estrelasHTML}</div>` : ''}
+        </div>
+        <div class="card-body">
+            <div class="card-info">📱 ${gesseiro.telefone}</div>
+            ${instagramUsername ? `<div class="card-info">📷 <a href="https://instagram.com/${instagramUsername}" target="_blank" style="color:#667eea;text-decoration:none;font-weight:600;">@${instagramUsername}</a></div>` : ''}
+            ${especialidadesHTML}
+            <div class="card-info">💬 ${gesseiro.descricao.substring(0,100)}${gesseiro.descricao.length>100?'...':''}</div>
+            ${precosHTML}
+            ${gesseiro.fotos && gesseiro.fotos.length>0 ? `<div class="card-fotos">${gesseiro.fotos.slice(0,3).map(foto=>`<img src="/${foto.url}" alt="Trabalho" onclick="event.stopPropagation(); abrirModal('/${foto.url}','${foto.descricao||'Sem descrição'}')" title="${foto.descricao||'Clique para ampliar'}">`).join('')}</div>` : ''}
+            <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation()">💬 Chamar no WhatsApp</a>
+        </div>
+    `;
+    return card;
+}
+
+// FILTROS
+function aplicarFiltros() {
+    const termoCidade = document.getElementById('filtroCidade').value.toLowerCase();
+    const termoEspecialidade = document.getElementById('filtroEspecialidade').value.toLowerCase();
+    const filtrados = todosGesseiros.filter(g => 
+        (g.cidade.toLowerCase().includes(termoCidade) || g.nome.toLowerCase().includes(termoCidade)) &&
+        (!termoEspecialidade || (g.especialidades && g.especialidades.some(e=>e.toLowerCase().includes(termoEspecialidade))))
+    );
+    exibirTodosGesseiros(filtrados);
+}
+
+document.getElementById('filtroCidade').addEventListener('input', aplicarFiltros);
+document.getElementById('filtroEspecialidade').addEventListener('input', aplicarFiltros);
+document.getElementById('filtroOrdenacao').addEventListener('change', e => {
+    const criterio = e.target.value;
+    let ordenados = [...todosGesseiros];
+    if (criterio==='nome') ordenados.sort((a,b)=>a.nome.localeCompare(b.nome));
+    else if (criterio==='cidade') ordenados.sort((a,b)=>a.cidade.localeCompare(b.cidade));
+    exibirTodosGesseiros(ordenados);
+});
+
+// CARREGAMENTO INICIAL
+carregarGesseiros();
+</script>
+
+</body>
+</html>
