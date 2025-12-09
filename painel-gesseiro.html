@@ -542,7 +542,7 @@
         // CARREGAR PERFIL
         async function carregarPerfil() {
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}`);
+                const response = await fetch(`/api/gesseiros/${gesseiroId}`);
                 const data = await response.json();
 
                 document.getElementById('nome').value = data.nome;
@@ -568,7 +568,7 @@
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}`, {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -602,7 +602,7 @@
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos`, {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/servicos`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -627,7 +627,7 @@
         // CARREGAR SERVIÇOS
         async function carregarServicos() {
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos`);
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/servicos`);
                 const servicos = await response.json();
 
                 const container = document.getElementById('servicosLista');
@@ -666,7 +666,7 @@
             if (!confirm('Deseja realmente excluir este serviço?')) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/servicos/${servicoId}`, {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/servicos/${servicoId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -696,7 +696,7 @@
             formData.append('descricao', descricao);
 
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos`, {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/fotos`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -719,7 +719,7 @@
         // CARREGAR FOTOS
         async function carregarFotos() {
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos`);
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/fotos`);
                 const fotos = await response.json();
 
                 const galeria = document.getElementById('galeria');
@@ -736,7 +736,7 @@
                     const div = document.createElement('div');
                     div.className = 'foto-item';
                     div.innerHTML = `
-                        <img src="http://localhost:3000/${foto.url}" alt="Trabalho" onclick="abrirModal('http://localhost:3000/${foto.url}', '${foto.descricao || ''}')">
+                        <img src="/${foto.url}" alt="Trabalho" onclick="abrirModal('/${foto.url}', '${foto.descricao || ''}')">
                         <div class="foto-descricao">${foto.descricao || 'Sem descrição'}</div>
                         <button class="btn-delete" onclick="event.stopPropagation(); deletarFoto(${foto.id})">🗑️</button>
                     `;
@@ -752,7 +752,7 @@
             if (!confirm('Deseja realmente excluir esta foto?')) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/gesseiros/${gesseiroId}/fotos/${fotoId}`, {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/fotos/${fotoId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
