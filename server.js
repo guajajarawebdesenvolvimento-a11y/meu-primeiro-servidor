@@ -99,13 +99,20 @@ const criarTabelas = async () => {
 criarTabelas();
 
 // ========== CONFIGURAR UPLOAD ==========
-if (!fs.existsSync('./uploads')) {
-  fs.mkdirSync('./uploads');
+// Garantir que a pasta uploads existe
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Pasta uploads criada!');
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Garantir que a pasta existe antes de cada upload
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -476,37 +483,47 @@ app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), asyn
   const gesseiroId = parseInt(req.params.id);
   const descricao = req.body.descricao || '';
 
+  console.log('=== UPLOAD DE FOTO ===');
+  console.log('Gesseiro ID:', gesseiroId);
+  console.log('Token Gesseiro ID:', req.gesseiroId);
+  console.log('Arquivo:', req.file ? req.file.filename : 'NENHUM');
+  console.log('Descrição:', descricao);
+
   if (req.gesseiroId !== gesseiroId) {
+    console.log('❌ Permissão negada');
     return res.status(403).json({ erro: 'Você não tem permissão para adicionar fotos aqui!' });
   }
 
   if (!req.file) {
+    console.log('❌ Nenhum arquivo enviado');
     return res.status(400).json({ erro: 'Nenhuma foto foi enviada' });
   }
 
   const fotoUrl = `uploads/${req.file.filename}`;
+  console.log('URL da foto:', fotoUrl);
 
   try {
     const result = await pool.query(
-      'INSERT INTO fotos (gesseiro_id, url_foto, descricao) VALUES ($1, $2, $3) RETURNING id',
+      'INSERT INTO fotos (gesseiro_id, url_foto, descricao) VALUES ($1, $2, $3) RETURNING *',
       [gesseiroId, fotoUrl, descricao]
     );
 
-    console.log('📸 Foto adicionada - Gesseiro ID:', gesseiroId, '- Descrição:', descricao);
+    console.log('✅ Foto salva no banco:', result.rows[0]);
 
     res.json({
       mensagem: 'Foto adicionada com sucesso!',
-      foto: {
-        id: result.rows[0].id,
-        gesseiro_id: gesseiroId,
-        url_foto: fotoUrl,
-        descricao: descricao
-      }
+      foto: result.rows[0]
     });
 
   } catch (erro) {
-    console.error('Erro ao salvar foto:', erro);
-    res.status(500).json({ erro: 'Erro ao salvar foto' });
+    console.error('❌ Erro ao salvar foto no banco:', erro);
+    console.error('SQL:', 'INSERT INTO fotos (gesseiro_id, url_foto, descricao) VALUES ($1, $2, $3)');
+    console.error('Valores:', [gesseiroId, fotoUrl, descricao]);
+    res.status(500).json({ 
+      erro: 'Erro ao salvar foto', 
+      detalhes: erro.message,
+      sql_state: erro.code
+    });
   }
 });
 
