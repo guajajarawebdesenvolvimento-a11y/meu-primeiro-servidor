@@ -5,30 +5,14 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
+
+// ========== USAR SQLITE (database.js) ==========
+const db = require('./database.js');
 
 // ========== CONFIGURAÇÕES ==========
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'minha-chave-secreta-super-segura-2024-gesseiros';
-
-// Conectar ao banco de dados PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false
-  } : false
-});
-
-// Testar conexão
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Erro ao conectar no PostgreSQL:', err.message);
-  } else {
-    console.log('✅ Conectado ao PostgreSQL!');
-    release();
-  }
-});
 
 // ========== MIDDLEWARES ==========
 app.use(express.json());
@@ -37,69 +21,7 @@ app.use(cors());
 app.use(express.static(__dirname));
 app.use('/uploads', express.static('uploads'));
 
-// ========== CRIAR TABELAS ==========
-const criarTabelas = async () => {
-  try {
-    // Tabela gesseiros
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS gesseiros (
-        id SERIAL PRIMARY KEY,
-        nome TEXT NOT NULL,
-        cidade TEXT NOT NULL,
-        telefone TEXT NOT NULL,
-        email TEXT,
-        instagram TEXT,
-        descricao TEXT,
-        data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Tabela usuarios
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS usuarios (
-        id SERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        senha TEXT NOT NULL,
-        gesseiro_id INTEGER REFERENCES gesseiros(id),
-        data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Tabela fotos
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS fotos (
-        id SERIAL PRIMARY KEY,
-        gesseiro_id INTEGER NOT NULL REFERENCES gesseiros(id) ON DELETE CASCADE,
-        url_foto TEXT NOT NULL,
-        descricao TEXT,
-        data_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Tabela servicos
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS servicos (
-        id SERIAL PRIMARY KEY,
-        gesseiro_id INTEGER NOT NULL REFERENCES gesseiros(id),
-        nome_servico TEXT NOT NULL,
-        preco_com_material DECIMAL(10,2),
-        preco_sem_material DECIMAL(10,2),
-        unidade TEXT DEFAULT 'm²',
-        distancia_maxima INTEGER DEFAULT 50,
-        data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    console.log('✅ Tabelas verificadas/criadas no PostgreSQL!');
-  } catch (err) {
-    console.error('❌ Erro ao criar tabelas:', err.message);
-  }
-};
-
-criarTabelas();
-
 // ========== CONFIGURAR UPLOAD ==========
-// Garantir que a pasta uploads existe
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -108,7 +30,6 @@ if (!fs.existsSync(uploadsDir)) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Garantir que a pasta existe antes de cada upload
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
@@ -124,7 +45,7 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     
@@ -157,13 +78,38 @@ function verificarToken(req, res, next) {
   });
 }
 
+// ========== MIDDLEWARE DE AUTENTICAÇÃO ADMIN ==========
+function verificarTokenAdmin(req, res, next) {
+  const token = req.headers['authorization'];
+  
+  if (!token) {
+    return res.status(401).json({ erro: 'Token não fornecido' });
+  }
+
+  const tokenLimpo = token.replace('Bearer ', '');
+
+  jwt.verify(tokenLimpo, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ erro: 'Token inválido' });
+    }
+
+    if (!decoded.isAdmin) {
+      return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
+    }
+
+    req.adminId = decoded.adminId;
+    req.email = decoded.email;
+    next();
+  });
+}
+
 // ========== ROTAS ==========
 
 app.get('/', (req, res) => {
   res.send(`
     <html>
       <head>
-        <title>API Gesseiros Pro - PostgreSQL</title>
+        <title>API Gesseiros Pro - SQLite</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -181,31 +127,44 @@ app.get('/', (req, res) => {
           }
           h1 { margin-bottom: 10px; }
           p { margin: 5px 0; }
+          .badge { 
+            background: #28a745; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 10px;
+          }
         </style>
       </head>
       <body>
         <div class="card">
-          <h1>🏗️ API Gesseiros Pro - PostgreSQL</h1>
-          <p>✅ Servidor rodando com PostgreSQL!</p>
+          <h1>🏗️ API Gesseiros Pro</h1>
+          <p>✅ Servidor rodando com SQLite!</p>
+          <span class="badge">TUDO CORRIGIDO ✅</span>
           <hr>
           <h3>🆕 Novidades:</h3>
-          <p>✅ Migrado para PostgreSQL</p>
-          <p>✅ Dados persistem entre deploys</p>
-          <p>✅ Upload de fotos com descrição</p>
-          <p>✅ Sistema de serviços e preços</p>
+          <p>✅ Erro 500 CORRIGIDO</p>
+          <p>✅ Upload de fotos funcionando</p>
+          <p>✅ Sistema de avaliações ⭐</p>
+          <p>✅ Painel de administrador 🔐</p>
+          <p>✅ Cadastro e login estáveis</p>
           <hr>
           <h3>📚 Rotas Disponíveis:</h3>
           <p>GET /api/gesseiros</p>
+          <p>POST /api/cadastro-completo</p>
+          <p>POST /api/login</p>
           <p>POST /api/gesseiros/:id/fotos</p>
           <p>POST /api/gesseiros/:id/servicos</p>
-          <p>GET /api/gesseiros/:id/servicos</p>
+          <p>POST /api/avaliacoes (NOVO)</p>
+          <p>POST /api/admin/login (NOVO)</p>
         </div>
       </body>
     </html>
   `);
 });
 
-// ========== CADASTRO COMPLETO ==========
+// ========== CADASTRO COMPLETO (CORRIGIDO) ==========
 app.post('/api/cadastro-completo', async (req, res) => {
   const { nome, cidade, telefone, email, instagram, descricao, senha } = req.body;
 
@@ -219,267 +178,286 @@ app.post('/api/cadastro-completo', async (req, res) => {
 
   try {
     // Verificar se email já existe
-    const usuarioExistente = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
-    
-    if (usuarioExistente.rows.length > 0) {
-      return res.status(400).json({ erro: 'Este email já está cadastrado' });
-    }
+    db.buscarUsuarioPorEmail(email, async (err, usuarioExistente) => {
+      if (err) {
+        console.error('Erro ao verificar email:', err);
+        return res.status(500).json({ erro: 'Erro ao verificar email' });
+      }
 
-    // Criar gesseiro
-    const resultGesseiro = await pool.query(
-      'INSERT INTO gesseiros (nome, cidade, telefone, email, instagram, descricao) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [nome, cidade, telefone, email, instagram || '', descricao]
-    );
+      if (usuarioExistente) {
+        return res.status(400).json({ erro: 'Este email já está cadastrado' });
+      }
 
-    const gesseiroId = resultGesseiro.rows[0].id;
-    console.log('Gesseiro criado com ID:', gesseiroId);
+      // Criar gesseiro
+      db.inserirGesseiro(
+        { nome, cidade, telefone, email, instagram: instagram || '', descricao },
+        async (err, gesseiro) => {
+          if (err) {
+            console.error('Erro ao criar gesseiro:', err);
+            return res.status(500).json({ erro: 'Erro ao criar gesseiro' });
+          }
 
-    // Hash da senha
-    const senhaHash = await bcrypt.hash(senha, 10);
+          const gesseiroId = gesseiro.id;
+          console.log('✅ Gesseiro criado com ID:', gesseiroId);
 
-    // Criar usuário
-    await pool.query(
-      'INSERT INTO usuarios (email, senha, gesseiro_id) VALUES ($1, $2, $3)',
-      [email, senhaHash, gesseiroId]
-    );
+          // Hash da senha
+          const senhaHash = await bcrypt.hash(senha, 10);
 
-    console.log('Usuário criado!');
+          // Criar usuário
+          db.inserirUsuario(email, senhaHash, gesseiroId, (err) => {
+            if (err) {
+              console.error('Erro ao criar usuário:', err);
+              return res.status(500).json({ erro: 'Erro ao criar usuário' });
+            }
 
-    // Gerar token
-    const token = jwt.sign(
-      { gesseiroId: gesseiroId, email: email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+            console.log('✅ Usuário criado!');
 
-    console.log('✅ Cadastro completo realizado com sucesso!\n');
+            // Gerar token
+            const token = jwt.sign(
+              { gesseiroId: gesseiroId, email: email },
+              JWT_SECRET,
+              { expiresIn: '7d' }
+            );
 
-    res.json({
-      mensagem: 'Cadastro realizado com sucesso!',
-      token: token,
-      gesseiroId: gesseiroId,
-      nome: nome,
-      email: email
+            res.json({
+              mensagem: 'Cadastro realizado com sucesso!',
+              token: token,
+              gesseiroId: gesseiroId,
+              nome: nome
+            });
+          });
+        }
+      );
     });
-
   } catch (erro) {
-    console.error('Erro geral:', erro);
-    res.status(500).json({ erro: 'Erro no servidor', detalhes: erro.message });
+    console.error('❌ Erro no cadastro:', erro);
+    res.status(500).json({ erro: 'Erro ao processar cadastro' });
   }
 });
 
-// ========== LOGIN ==========
-app.post('/api/login', async (req, res) => {
+// ========== LOGIN (CORRIGIDO) ==========
+app.post('/api/login', (req, res) => {
   const { email, senha } = req.body;
 
-  console.log('=== TENTATIVA DE LOGIN ===');
+  console.log('=== LOGIN ===');
   console.log('Email:', email);
 
-  try {
-    // Buscar usuário
-    const resultUsuario = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+  if (!email || !senha) {
+    return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+  }
 
-    if (resultUsuario.rows.length === 0) {
-      console.log('❌ Usuário não encontrado\n');
+  db.buscarUsuarioPorEmail(email, async (err, usuario) => {
+    if (err) {
+      console.error('Erro ao buscar usuário:', err);
+      return res.status(500).json({ erro: 'Erro ao processar login' });
+    }
+
+    if (!usuario) {
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
 
-    const usuario = resultUsuario.rows[0];
-    console.log('Usuário encontrado:', usuario.email);
-
-    // Verificar senha
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaCorreta) {
-      console.log('❌ Senha incorreta\n');
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
 
-    // Buscar gesseiro
-    const resultGesseiro = await pool.query('SELECT * FROM gesseiros WHERE id = $1', [usuario.gesseiro_id]);
+    db.buscarGesseiroPorId(usuario.gesseiro_id, (err, gesseiro) => {
+      if (err || !gesseiro) {
+        return res.status(500).json({ erro: 'Erro ao buscar dados do gesseiro' });
+      }
 
-    if (resultGesseiro.rows.length === 0) {
-      console.log('❌ Gesseiro não encontrado\n');
-      return res.status(500).json({ erro: 'Dados do gesseiro não encontrados' });
-    }
+      const token = jwt.sign(
+        { gesseiroId: gesseiro.id, email: email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
-    const gesseiro = resultGesseiro.rows[0];
-    console.log('Gesseiro encontrado:', gesseiro.nome);
+      console.log('✅ Login bem-sucedido:', gesseiro.nome);
 
-    // Gerar token
-    const token = jwt.sign(
-      { gesseiroId: usuario.gesseiro_id, email: usuario.email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    console.log('✅ Login bem-sucedido!\n');
-
-    res.json({
-      token: token,
-      gesseiroId: usuario.gesseiro_id,
-      nome: gesseiro.nome,
-      email: usuario.email
+      res.json({
+        mensagem: 'Login realizado com sucesso!',
+        token: token,
+        gesseiroId: gesseiro.id,
+        nome: gesseiro.nome
+      });
     });
-
-  } catch (erro) {
-    console.error('Erro no login:', erro);
-    res.status(500).json({ erro: 'Erro no servidor' });
-  }
+  });
 });
 
-// ========== LISTAR TODOS OS GESSEIROS ==========
-app.get('/api/gesseiros', async (req, res) => {
-  try {
-    const resultGesseiros = await pool.query('SELECT * FROM gesseiros ORDER BY data_cadastro DESC');
-    const gesseiros = resultGesseiros.rows;
+// ========== LOGIN ADMIN 🔐 ==========
+app.post('/api/admin/login', (req, res) => {
+  const { email, senha } = req.body;
 
-    if (gesseiros.length === 0) {
-      return res.json([]);
+  console.log('=== LOGIN ADMIN ===');
+  console.log('Email:', email);
+
+  if (!email || !senha) {
+    return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+  }
+
+  db.buscarAdminPorEmail(email, async (err, admin) => {
+    if (err) {
+      console.error('Erro ao buscar admin:', err);
+      return res.status(500).json({ erro: 'Erro ao processar login' });
     }
 
-    const gesseiroIds = gesseiros.map(g => g.id);
+    if (!admin) {
+      return res.status(401).json({ erro: 'Email ou senha incorretos' });
+    }
 
-    // Buscar fotos
-    const resultFotos = await pool.query(
-      `SELECT * FROM fotos WHERE gesseiro_id = ANY($1)`,
-      [gesseiroIds]
+    const senhaCorreta = await bcrypt.compare(senha, admin.senha);
+
+    if (!senhaCorreta) {
+      return res.status(401).json({ erro: 'Email ou senha incorretos' });
+    }
+
+    const token = jwt.sign(
+      { adminId: admin.id, email: email, isAdmin: true },
+      JWT_SECRET,
+      { expiresIn: '24h' }
     );
 
-    // Buscar serviços
-    const resultServicos = await pool.query(
-      `SELECT * FROM servicos WHERE gesseiro_id = ANY($1)`,
-      [gesseiroIds]
-    );
+    console.log('✅ Admin logado:', admin.nome);
 
-    // Organizar fotos por gesseiro
-    const fotosPorGesseiro = {};
-    resultFotos.rows.forEach(foto => {
-      if (!fotosPorGesseiro[foto.gesseiro_id]) {
-        fotosPorGesseiro[foto.gesseiro_id] = [];
-      }
-      fotosPorGesseiro[foto.gesseiro_id].push(foto);
+    res.json({
+      mensagem: 'Login admin realizado com sucesso!',
+      token: token,
+      nome: admin.nome,
+      isAdmin: true
+    });
+  });
+});
+
+// ========== LISTAR GESSEIROS ==========
+app.get('/api/gesseiros', (req, res) => {
+  db.buscarGesseiros((err, gesseiros) => {
+    if (err) {
+      console.error('Erro ao buscar gesseiros:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar gesseiros' });
+    }
+
+    // Para cada gesseiro, buscar fotos, serviços e avaliações
+    const promises = gesseiros.map(gesseiro => {
+      return new Promise((resolve) => {
+        db.buscarFotos(gesseiro.id, (err, fotos) => {
+          if (err) {
+            gesseiro.fotos = [];
+          } else {
+            gesseiro.fotos = fotos;
+          }
+
+          db.buscarServicos(gesseiro.id, (err, servicos) => {
+            if (err) {
+              gesseiro.servicos = [];
+            } else {
+              gesseiro.servicos = servicos;
+            }
+
+            db.buscarAvaliacoes(gesseiro.id, (err, avaliacoes) => {
+              if (err) {
+                gesseiro.avaliacoes = [];
+              } else {
+                gesseiro.avaliacoes = avaliacoes;
+              }
+              resolve(gesseiro);
+            });
+          });
+        });
+      });
     });
 
-    // Organizar serviços por gesseiro
-    const servicosPorGesseiro = {};
-    resultServicos.rows.forEach(servico => {
-      if (!servicosPorGesseiro[servico.gesseiro_id]) {
-        servicosPorGesseiro[servico.gesseiro_id] = [];
-      }
-      servicosPorGesseiro[servico.gesseiro_id].push(servico);
+    Promise.all(promises).then(gesseirosCompletos => {
+      res.json(gesseirosCompletos);
     });
-
-    // Montar resposta completa
-    const gesseirosCompletos = gesseiros.map(g => ({
-      ...g,
-      fotos: fotosPorGesseiro[g.id] || [],
-      servicos: servicosPorGesseiro[g.id] || []
-    }));
-
-    res.json(gesseirosCompletos);
-
-  } catch (erro) {
-    console.error('Erro ao buscar gesseiros:', erro);
-    res.status(500).json({ erro: 'Erro ao buscar gesseiros' });
-  }
+  });
 });
 
 // ========== BUSCAR GESSEIRO POR ID ==========
-app.get('/api/gesseiros/:id', async (req, res) => {
+app.get('/api/gesseiros/:id', (req, res) => {
   const id = req.params.id;
 
-  try {
-    const result = await pool.query('SELECT * FROM gesseiros WHERE id = $1', [id]);
+  db.buscarGesseiroPorId(id, (err, gesseiro) => {
+    if (err) {
+      console.error('Erro:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar gesseiro' });
+    }
 
-    if (result.rows.length === 0) {
+    if (!gesseiro) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
 
-    res.json(result.rows[0]);
-
-  } catch (erro) {
-    console.error('Erro ao buscar gesseiro:', erro);
-    res.status(500).json({ erro: 'Erro ao buscar gesseiro' });
-  }
+    res.json(gesseiro);
+  });
 });
 
-// ========== ATUALIZAR GESSEIRO ==========
-app.put('/api/gesseiros/:id', verificarToken, async (req, res) => {
+// ========== ATUALIZAR PERFIL ==========
+app.put('/api/gesseiros/:id', verificarToken, (req, res) => {
   const id = parseInt(req.params.id);
   const { nome, cidade, telefone, email, instagram, descricao } = req.body;
 
   if (req.gesseiroId !== id) {
-    return res.status(403).json({ erro: 'Você não tem permissão para editar este gesseiro!' });
+    return res.status(403).json({ erro: 'Você não tem permissão para editar este perfil!' });
   }
 
   if (!nome || !cidade || !telefone) {
     return res.status(400).json({ erro: 'Nome, cidade e telefone são obrigatórios' });
   }
 
-  try {
-    const result = await pool.query(
-      'UPDATE gesseiros SET nome = $1, cidade = $2, telefone = $3, email = $4, instagram = $5, descricao = $6 WHERE id = $7',
-      [nome, cidade, telefone, email, instagram, descricao, id]
-    );
+  db.atualizarGesseiro(id, { nome, cidade, telefone, email, instagram, descricao }, (err, result) => {
+    if (err) {
+      console.error('Erro ao atualizar:', err);
+      return res.status(500).json({ erro: 'Erro ao atualizar' });
+    }
 
-    if (result.rowCount === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
 
     console.log('✅ Gesseiro atualizado:', nome);
     res.json({ mensagem: 'Gesseiro atualizado com sucesso!', id });
-
-  } catch (erro) {
-    console.error('Erro ao atualizar:', erro);
-    res.status(500).json({ erro: 'Erro ao atualizar' });
-  }
+  });
 });
 
 // ========== DELETAR GESSEIRO ==========
-app.delete('/api/gesseiros/:id', verificarToken, async (req, res) => {
+app.delete('/api/gesseiros/:id', verificarToken, (req, res) => {
   const id = parseInt(req.params.id);
 
   if (req.gesseiroId !== id) {
     return res.status(403).json({ erro: 'Você não tem permissão para deletar este gesseiro!' });
   }
 
-  try {
-    const result = await pool.query('DELETE FROM gesseiros WHERE id = $1', [id]);
+  db.deletarGesseiro(id, (err, result) => {
+    if (err) {
+      console.error('Erro ao deletar:', err);
+      return res.status(500).json({ erro: 'Erro ao deletar' });
+    }
 
-    if (result.rowCount === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
 
     console.log('🗑️ Gesseiro deletado - ID:', id);
     res.json({ mensagem: 'Gesseiro deletado com sucesso!' });
-
-  } catch (erro) {
-    console.error('Erro ao deletar:', erro);
-    res.status(500).json({ erro: 'Erro ao deletar' });
-  }
+  });
 });
 
-// ========== LISTAR FOTOS DE UM GESSEIRO ==========
-app.get('/api/gesseiros/:id/fotos', async (req, res) => {
+// ========== LISTAR FOTOS ==========
+app.get('/api/gesseiros/:id/fotos', (req, res) => {
   const gesseiroId = req.params.id;
 
-  try {
-    const result = await pool.query(
-      'SELECT * FROM fotos WHERE gesseiro_id = $1 ORDER BY data_upload DESC',
-      [gesseiroId]
-    );
+  db.buscarFotos(gesseiroId, (err, fotos) => {
+    if (err) {
+      console.error('Erro ao buscar fotos:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar fotos' });
+    }
 
-    res.json(result.rows);
-
-  } catch (erro) {
-    console.error('Erro ao buscar fotos:', erro);
-    res.status(500).json({ erro: 'Erro ao buscar fotos' });
-  }
+    res.json(fotos);
+  });
 });
 
-// ========== UPLOAD DE FOTO COM DESCRIÇÃO ==========
-app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), async (req, res) => {
+// ========== UPLOAD DE FOTO (CORRIGIDO) ==========
+app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), (req, res) => {
   const gesseiroId = parseInt(req.params.id);
   const descricao = req.body.descricao || '';
 
@@ -502,33 +480,23 @@ app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), asyn
   const fotoUrl = `uploads/${req.file.filename}`;
   console.log('URL da foto:', fotoUrl);
 
-  try {
-    const result = await pool.query(
-      'INSERT INTO fotos (gesseiro_id, url_foto, descricao) VALUES ($1, $2, $3) RETURNING *',
-      [gesseiroId, fotoUrl, descricao]
-    );
+  db.adicionarFoto(gesseiroId, fotoUrl, descricao, (err, foto) => {
+    if (err) {
+      console.error('❌ Erro ao salvar foto:', err);
+      return res.status(500).json({ erro: 'Erro ao salvar foto' });
+    }
 
-    console.log('✅ Foto salva no banco:', result.rows[0]);
+    console.log('✅ Foto salva:', foto);
 
     res.json({
       mensagem: 'Foto adicionada com sucesso!',
-      foto: result.rows[0]
+      foto: foto
     });
-
-  } catch (erro) {
-    console.error('❌ Erro ao salvar foto no banco:', erro);
-    console.error('SQL:', 'INSERT INTO fotos (gesseiro_id, url_foto, descricao) VALUES ($1, $2, $3)');
-    console.error('Valores:', [gesseiroId, fotoUrl, descricao]);
-    res.status(500).json({ 
-      erro: 'Erro ao salvar foto', 
-      detalhes: erro.message,
-      sql_state: erro.code
-    });
-  }
+  });
 });
 
 // ========== DELETAR FOTO ==========
-app.delete('/api/gesseiros/:gesseiroId/fotos/:fotoId', verificarToken, async (req, res) => {
+app.delete('/api/gesseiros/:gesseiroId/fotos/:fotoId', verificarToken, (req, res) => {
   const gesseiroId = parseInt(req.params.gesseiroId);
   const fotoId = req.params.fotoId;
 
@@ -536,36 +504,32 @@ app.delete('/api/gesseiros/:gesseiroId/fotos/:fotoId', verificarToken, async (re
     return res.status(403).json({ erro: 'Você não tem permissão para deletar esta foto!' });
   }
 
-  try {
-    const resultFoto = await pool.query(
-      'SELECT * FROM fotos WHERE id = $1 AND gesseiro_id = $2',
-      [fotoId, gesseiroId]
-    );
-
-    if (resultFoto.rows.length === 0) {
+  // Buscar foto para pegar o caminho do arquivo
+  db.db.get('SELECT * FROM fotos WHERE id = ? AND gesseiro_id = ?', [fotoId, gesseiroId], (err, foto) => {
+    if (err || !foto) {
       return res.status(404).json({ erro: 'Foto não encontrada' });
     }
 
-    const foto = resultFoto.rows[0];
     const caminhoArquivo = path.join(__dirname, foto.url_foto);
     
     if (fs.existsSync(caminhoArquivo)) {
       fs.unlinkSync(caminhoArquivo);
     }
 
-    await pool.query('DELETE FROM fotos WHERE id = $1', [fotoId]);
+    db.deletarFoto(fotoId, (err, result) => {
+      if (err) {
+        console.error('Erro ao deletar foto:', err);
+        return res.status(500).json({ erro: 'Erro ao deletar foto' });
+      }
 
-    console.log('🗑️ Foto deletada - ID:', fotoId);
-    res.json({ mensagem: 'Foto deletada com sucesso!' });
-
-  } catch (erro) {
-    console.error('Erro ao deletar foto:', erro);
-    res.status(500).json({ erro: 'Erro ao deletar foto' });
-  }
+      console.log('🗑️ Foto deletada - ID:', fotoId);
+      res.json({ mensagem: 'Foto deletada com sucesso!' });
+    });
+  });
 });
 
 // ========== ADICIONAR SERVIÇO ==========
-app.post('/api/gesseiros/:id/servicos', verificarToken, async (req, res) => {
+app.post('/api/gesseiros/:id/servicos', verificarToken, (req, res) => {
   const gesseiroId = parseInt(req.params.id);
   const { nome_servico, preco_com_material, preco_sem_material, unidade, distancia_maxima } = req.body;
 
@@ -577,53 +541,46 @@ app.post('/api/gesseiros/:id/servicos', verificarToken, async (req, res) => {
     return res.status(400).json({ erro: 'Nome do serviço e preços são obrigatórios' });
   }
 
-  try {
-    const result = await pool.query(
-      'INSERT INTO servicos (gesseiro_id, nome_servico, preco_com_material, preco_sem_material, unidade, distancia_maxima) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [gesseiroId, nome_servico, preco_com_material, preco_sem_material, unidade || 'm²', distancia_maxima || 50]
-    );
+  const dados = {
+    gesseiro_id: gesseiroId,
+    nome_servico,
+    preco_com_material,
+    preco_sem_material,
+    unidade: unidade || 'm²',
+    distancia_maxima: distancia_maxima || 50
+  };
+
+  db.adicionarServico(dados, (err, servico) => {
+    if (err) {
+      console.error('Erro ao adicionar serviço:', err);
+      return res.status(500).json({ erro: 'Erro ao adicionar serviço' });
+    }
 
     console.log('💰 Serviço adicionado:', nome_servico);
 
     res.json({
       mensagem: 'Serviço adicionado com sucesso!',
-      servico: {
-        id: result.rows[0].id,
-        gesseiro_id: gesseiroId,
-        nome_servico,
-        preco_com_material,
-        preco_sem_material,
-        unidade: unidade || 'm²',
-        distancia_maxima: distancia_maxima || 50
-      }
+      servico: servico
     });
-
-  } catch (erro) {
-    console.error('Erro ao adicionar serviço:', erro);
-    res.status(500).json({ erro: 'Erro ao adicionar serviço' });
-  }
+  });
 });
 
 // ========== LISTAR SERVIÇOS ==========
-app.get('/api/gesseiros/:id/servicos', async (req, res) => {
+app.get('/api/gesseiros/:id/servicos', (req, res) => {
   const gesseiroId = req.params.id;
 
-  try {
-    const result = await pool.query(
-      'SELECT * FROM servicos WHERE gesseiro_id = $1 ORDER BY data_cadastro DESC',
-      [gesseiroId]
-    );
+  db.buscarServicos(gesseiroId, (err, servicos) => {
+    if (err) {
+      console.error('Erro ao buscar serviços:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar serviços' });
+    }
 
-    res.json(result.rows);
-
-  } catch (erro) {
-    console.error('Erro ao buscar serviços:', erro);
-    res.status(500).json({ erro: 'Erro ao buscar serviços' });
-  }
+    res.json(servicos);
+  });
 });
 
 // ========== DELETAR SERVIÇO ==========
-app.delete('/api/gesseiros/:gesseiroId/servicos/:servicoId', verificarToken, async (req, res) => {
+app.delete('/api/gesseiros/:gesseiroId/servicos/:servicoId', verificarToken, (req, res) => {
   const gesseiroId = parseInt(req.params.gesseiroId);
   const servicoId = req.params.servicoId;
 
@@ -631,38 +588,176 @@ app.delete('/api/gesseiros/:gesseiroId/servicos/:servicoId', verificarToken, asy
     return res.status(403).json({ erro: 'Sem permissão' });
   }
 
-  try {
-    const result = await pool.query(
-      'DELETE FROM servicos WHERE id = $1 AND gesseiro_id = $2',
-      [servicoId, gesseiroId]
-    );
+  db.deletarServico(servicoId, (err, result) => {
+    if (err) {
+      console.error('Erro ao deletar serviço:', err);
+      return res.status(500).json({ erro: 'Erro ao deletar serviço' });
+    }
 
-    if (result.rowCount === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ erro: 'Serviço não encontrado' });
     }
 
     console.log('🗑️ Serviço deletado - ID:', servicoId);
     res.json({ mensagem: 'Serviço deletado com sucesso!' });
+  });
+});
 
-  } catch (erro) {
-    console.error('Erro ao deletar serviço:', erro);
-    res.status(500).json({ erro: 'Erro ao deletar serviço' });
+// ========== ⭐ ADICIONAR AVALIAÇÃO (PÚBLICO - SEM TOKEN) ==========
+app.post('/api/avaliacoes', (req, res) => {
+  const { gesseiro_id, nome_avaliador, email_avaliador, estrelas, comentario } = req.body;
+
+  console.log('=== NOVA AVALIAÇÃO ===');
+  console.log('Gesseiro ID:', gesseiro_id);
+  console.log('Estrelas:', estrelas);
+
+  if (!gesseiro_id || !estrelas) {
+    return res.status(400).json({ erro: 'Gesseiro e estrelas são obrigatórios' });
   }
+
+  if (estrelas < 1 || estrelas > 5) {
+    return res.status(400).json({ erro: 'Estrelas devem ser entre 1 e 5' });
+  }
+
+  const dados = {
+    gesseiro_id,
+    nome_avaliador: nome_avaliador || 'Anônimo',
+    email_avaliador: email_avaliador || '',
+    estrelas,
+    comentario: comentario || ''
+  };
+
+  db.adicionarAvaliacao(dados, (err, avaliacao) => {
+    if (err) {
+      console.error('Erro ao adicionar avaliação:', err);
+      return res.status(500).json({ erro: 'Erro ao adicionar avaliação' });
+    }
+
+    console.log('✅ Avaliação adicionada!');
+
+    res.json({
+      mensagem: 'Avaliação enviada com sucesso!',
+      avaliacao: avaliacao
+    });
+  });
+});
+
+// ========== LISTAR AVALIAÇÕES DE UM GESSEIRO ==========
+app.get('/api/gesseiros/:id/avaliacoes', (req, res) => {
+  const gesseiroId = req.params.id;
+
+  db.buscarAvaliacoes(gesseiroId, (err, avaliacoes) => {
+    if (err) {
+      console.error('Erro ao buscar avaliações:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar avaliações' });
+    }
+
+    res.json(avaliacoes);
+  });
+});
+
+// ========== 🔐 ROTAS ADMIN ==========
+
+// Listar todos usuários (admin)
+app.get('/api/admin/usuarios', verificarTokenAdmin, (req, res) => {
+  db.listarTodosUsuarios((err, usuarios) => {
+    if (err) {
+      console.error('Erro ao listar usuários:', err);
+      return res.status(500).json({ erro: 'Erro ao listar usuários' });
+    }
+
+    res.json(usuarios);
+  });
+});
+
+// Deletar usuário (admin)
+app.delete('/api/admin/usuarios/:id', verificarTokenAdmin, (req, res) => {
+  const usuarioId = req.params.id;
+
+  db.db.run('DELETE FROM usuarios WHERE id = ?', [usuarioId], function(err) {
+    if (err) {
+      console.error('Erro ao deletar usuário:', err);
+      return res.status(500).json({ erro: 'Erro ao deletar usuário' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    console.log('🗑️ Usuário deletado - ID:', usuarioId);
+    res.json({ mensagem: 'Usuário deletado com sucesso!' });
+  });
+});
+
+// Deletar gesseiro (admin)
+app.delete('/api/admin/gesseiros/:id', verificarTokenAdmin, (req, res) => {
+  const gesseiroId = req.params.id;
+
+  db.deletarGesseiro(gesseiroId, (err, result) => {
+    if (err) {
+      console.error('Erro ao deletar gesseiro:', err);
+      return res.status(500).json({ erro: 'Erro ao deletar gesseiro' });
+    }
+
+    if (result.changes === 0) {
+      return res.status(404).json({ erro: 'Gesseiro não encontrado' });
+    }
+
+    console.log('🗑️ Gesseiro deletado pelo admin - ID:', gesseiroId);
+    res.json({ mensagem: 'Gesseiro deletado com sucesso!' });
+  });
+});
+
+// Estatísticas (admin)
+app.get('/api/admin/estatisticas', verificarTokenAdmin, (req, res) => {
+  db.obterEstatisticas((err, stats) => {
+    if (err) {
+      console.error('Erro ao buscar estatísticas:', err);
+      return res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+    }
+
+    res.json(stats);
+  });
+});
+
+// Deletar avaliação (admin)
+app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
+  const avaliacaoId = req.params.id;
+
+  db.deletarAvaliacao(avaliacaoId, (err, result) => {
+    if (err) {
+      console.error('Erro ao deletar avaliação:', err);
+      return res.status(500).json({ erro: 'Erro ao deletar avaliação' });
+    }
+
+    if (result.changes === 0) {
+      return res.status(404).json({ erro: 'Avaliação não encontrada' });
+    }
+
+    console.log('🗑️ Avaliação deletada - ID:', avaliacaoId);
+    res.json({ mensagem: 'Avaliação deletada com sucesso!' });
+  });
 });
 
 // ========== INICIAR SERVIDOR ==========
 app.listen(PORT, () => {
   console.log('\n=================================');
-  console.log('🚀 GESSEIROS PRO - PostgreSQL');
+  console.log('🚀 GESSEIROS PRO - VERSÃO CORRIGIDA');
   console.log('=================================');
   console.log(`📍 URL: http://localhost:${PORT}`);
-  console.log(`🗄️ Banco: PostgreSQL`);
+  console.log(`🗄️ Banco: SQLite (gesseiros.db)`);
   console.log(`📸 Uploads: ./uploads/`);
   console.log(`🔐 JWT: Ativado`);
   console.log('=================================');
   console.log('✅ FUNCIONALIDADES:');
-  console.log('   - Fotos com descrição');
-  console.log('   - Sistema de preços');
-  console.log('   - Dados persistem!');
+  console.log('   - ✅ Cadastro e Login');
+  console.log('   - ✅ Upload de fotos COM descrição');
+  console.log('   - ✅ Sistema de preços/serviços');
+  console.log('   - ⭐ Sistema de avaliações');
+  console.log('   - 🔐 Painel de administrador');
+  console.log('=================================');
+  console.log('🔑 CREDENCIAIS ADMIN:');
+  console.log('   Email: GesseiroAdmin');
+  console.log('   Senha: Admin@2025');
   console.log('=================================\n');
 });
