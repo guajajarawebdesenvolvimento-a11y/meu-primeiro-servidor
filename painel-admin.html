@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Painel Administrativo - SeuGesseiro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .admin-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .btn-sair {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-sair:hover {
+            background: white;
+            color: #7e22ce;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid;
+        }
+
+        .stat-card.blue { border-color: #3b82f6; }
+        .stat-card.green { border-color: #10b981; }
+        .stat-card.purple { border-color: #7e22ce; }
+        .stat-card.orange { border-color: #f59e0b; }
+
+        .stat-card h3 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #1e3c72 0%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: #666;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #7e22ce;
+            padding-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #1e3c72 0%, #7e22ce 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-view {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>
+                    🔐 Painel Administrativo
+                    <span class="admin-badge">ADMIN</span>
+                </h1>
+                <p id="bemVindo" style="margin-top: 5px; opacity: 0.9; font-size: 14px;"></p>
+            </div>
+            <button class="btn-sair" onclick="sair()">🚪 Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alertaPrincipal" class="alert"></div>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <h3 id="totalGesseiros">0</h3>
+                <p>👷 Total de Gesseiros</p>
+            </div>
+            <div class="stat-card green">
+                <h3 id="totalUsuarios">0</h3>
+                <p>👥 Usuários com Login</p>
+            </div>
+            <div class="stat-card purple">
+                <h3 id="totalFotos">0</h3>
+                <p>📸 Fotos no Portfólio</p>
+            </div>
+            <div class="stat-card orange">
+                <h3 id="totalAvaliacoes">0</h3>
+                <p>⭐ Avaliações Recebidas</p>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" onclick="trocarAba('usuarios')">👥 Usuários Cadastrados</button>
+            <button class="tab" onclick="trocarAba('gesseiros')">👷 Todos os Gesseiros</button>
+        </div>
+
+        <!-- CONTEÚDO TAB USUÁRIOS -->
+        <div id="tabUsuarios" class="tab-content active">
+            <div class="section">
+                <h2>👥 Usuários com Login</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Cidade</th>
+                            <th>Telefone</th>
+                            <th>Data Cadastro</th>
+                            <th>Fotos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios">
+                        <tr>
+                            <td colspan="8" class="loading">🔄 Carregando usuários...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CONTEÚDO TAB GESSEIROS -->
+        <div id="tabGesseiros" class="tab-content">
+            <div class="section">
+                <h2>👷 Todos os Gesseiros (incluindo exemplos)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Cidade</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Fotos</th>
+                            <th>Avaliações</th>
+                            <th>Tem Login?</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaGesseiros">
+                        <tr>
+                            <td colspan="9" class="loading">🔄 Carregando gesseiros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const adminToken = localStorage.getItem('adminToken');
+        const adminNome = localStorage.getItem('adminNome');
+
+        if (!adminToken) {
+            window.location.href = 'login-admin.html';
+        }
+
+        document.getElementById('bemVindo').textContent = `Bem-vindo, ${adminNome || 'Administrador'}!`;
+
+        function mostrarAlerta(mensagem, tipo) {
+            const alerta = document.getElementById('alertaPrincipal');
+            alerta.textContent = mensagem;
+            alerta.className = `alert ${tipo}`;
+            alerta.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                alerta.style.display = 'none';
+            }, 5000);
+        }
+
+        function sair() {
+            if (confirm('Deseja realmente sair do painel administrativo?')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminNome');
+                localStorage.removeItem('isAdmin');
+                window.location.href = 'login-admin.html';
+            }
+        }
+
+        // TROCAR ABAS
+        function trocarAba(aba) {
+            // Desativar todas as tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Ativar a tab clicada
+            if (aba === 'usuarios') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tabUsuarios').classList.add('active');
+                carregarUsuarios();
+            } else if (aba === 'gesseiros') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tabGesseiros').classList.add('active');
+                carregarTodosGesseiros();
+            }
+        }
+
+        // CARREGAR ESTATÍSTICAS
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('/api/admin/estatisticas', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar estatísticas');
+
+                const stats = await response.json();
+                document.getElementById('totalGesseiros').textContent = stats.total_gesseiros || 0;
+                document.getElementById('totalUsuarios').textContent = stats.total_usuarios || 0;
+                document.getElementById('totalFotos').textContent = stats.total_fotos || 0;
+                document.getElementById('totalAvaliacoes').textContent = stats.total_avaliacoes || 0;
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        // CARREGAR USUÁRIOS (com login)
+        async function carregarUsuarios() {
+            try {
+                const response = await fetch('/api/admin/usuarios', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const usuarios = await response.json();
+                const tbody = document.getElementById('tabelaUsuarios');
+                tbody.innerHTML = '';
+
+                if (usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">Nenhum usuário cadastrado</td></tr>';
+                    return;
+                }
+
+                usuarios.forEach(usuario => {
+                    const tr = document.createElement('tr');
+                    const data = new Date(usuario.data_cadastro_usuario || usuario.data_cadastro_gesseiro).toLocaleDateString('pt-BR');
+                    
+                    tr.innerHTML = `
+                        <td><strong>#${usuario.usuario_id}</strong></td>
+                        <td>${usuario.nome || 'N/A'}</td>
+                        <td>${usuario.email}</td>
+                        <td>${usuario.cidade || 'N/A'}</td>
+                        <td>${usuario.telefone || 'N/A'}</td>
+                        <td>${data}</td>
+                        <td><span class="badge success">${usuario.total_fotos || 0} fotos</span></td>
+                        <td>
+                            <button class="btn btn-view" onclick="verDetalhes(${usuario.gesseiro_id})">👁️ Ver</button>
+                            <button class="btn btn-danger" onclick="deletarUsuario(${usuario.usuario_id}, '${usuario.nome}')">🗑️ Deletar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        // CARREGAR TODOS OS GESSEIROS
+        async function carregarTodosGesseiros() {
+            try {
+                const response = await fetch('/api/gesseiros');
+                const gesseiros = await response.json();
+                const tbody = document.getElementById('tabelaGesseiros');
+                tbody.innerHTML = '';
+
+                if (gesseiros.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">Nenhum gesseiro encontrado</td></tr>';
+                    return;
+                }
+
+                gesseiros.forEach(gesseiro => {
+                    const tr = document.createElement('tr');
+                    const temLogin = gesseiro.email ? '✅ Sim' : '❌ Não';
+                    
+                    tr.innerHTML = `
+                        <td><strong>#${gesseiro.id}</strong></td>
+                        <td>${gesseiro.nome}</td>
+                        <td>${gesseiro.cidade}</td>
+                        <td>${gesseiro.telefone}</td>
+                        <td>${gesseiro.email || 'N/A'}</td>
+                        <td><span class="badge success">${gesseiro.total_fotos || 0}</span></td>
+                        <td><span class="badge ${gesseiro.total_avaliacoes > 0 ? 'success' : 'warning'}">${gesseiro.total_avaliacoes || 0} ⭐</span></td>
+                        <td>${temLogin}</td>
+                        <td>
+                            <button class="btn btn-view" onclick="window.open('index.html', '_blank')">👁️ Ver</button>
+                            <button class="btn btn-danger" onclick="deletarGesseiro(${gesseiro.id}, '${gesseiro.nome}')">🗑️ Deletar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        // DELETAR USUÁRIO
+        async function deletarUsuario(usuarioId, nome) {
+            if (!confirm(`⚠️ Deletar usuário "${nome}"?\n\nIsso também deletará o gesseiro associado!`)) return;
+
+            try {
+                const response = await fetch(`/api/admin/usuarios/${usuarioId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarAlerta(`✅ Usuário "${nome}" deletado!`, 'success');
+                    carregarUsuarios();
+                    carregarEstatisticas();
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao deletar', 'error');
+            }
+        }
+
+        // DELETAR GESSEIRO
+        async function deletarGesseiro(gesseiroId, nome) {
+            if (!confirm(`⚠️ Deletar gesseiro "${nome}"?\n\nIsso é IRREVERSÍVEL!`)) return;
+
+            try {
+                const response = await fetch(`/api/admin/gesseiros/${gesseiroId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    mostrarAlerta(`✅ Gesseiro "${nome}" deletado!`, 'success');
+                    carregarTodosGesseiros();
+                    carregarEstatisticas();
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (error) {
+                mostrarAlerta('❌ Erro ao deletar', 'error');
+            }
+        }
+
+        function verDetalhes(gesseiroId) {
+            if (gesseiroId) {
+                window.open(`index.html`, '_blank');
+            }
+        }
+
+        // CARREGAR AO INICIAR
+        window.addEventListener('load', () => {
+            carregarEstatisticas();
+            carregarUsuarios();
+        });
+    </script>
+</body>
+</html>
