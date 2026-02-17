@@ -321,7 +321,7 @@ async function carregarPerfil() {
         const [fotosRes, servicosRes, avaliacoesRes, planoRes] = await Promise.all([
             fetch(`/api/gesseiros/${gesseiroId}/fotos`),
             fetch(`/api/gesseiros/${gesseiroId}/servicos`),
-            fetch(`/api/avaliacoes/${gesseiroId}`),
+            fetch(`/api/gesseiros/${gesseiroId}/avaliacoes`),
             fetch(`/api/gesseiros/${gesseiroId}/plano`)
         ]);
 
