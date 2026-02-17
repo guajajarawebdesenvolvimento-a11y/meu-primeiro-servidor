@@ -1049,6 +1049,8 @@ function exibirTodosGesseiros(gesseiros) {
 function criarCard(gesseiro) {
     const card = document.createElement('div');
     card.className = 'card';
+    card.style.cursor = 'pointer';
+    card.onclick = () => window.location.href = `/gesseiro.html?id=${gesseiro.id}`;
 
     const whatsappLink = gesseiro.telefone.replace(/\D/g,'');
     const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, encontrei seu perfil no SeuGesseiro Grajaú!`);
