@@ -30,7 +30,14 @@ cloudinary.config({
 // ========== MIDDLEWARES ==========
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://seugesseiro.com.br',
+    'https://www.seugesseiro.com.br',
+    'http://localhost:3000'
+  ],
+  credentials: true
+}));
 app.use(express.static(__dirname));
 
 // ========== CONFIGURAR UPLOAD (CLOUDINARY) ==========
