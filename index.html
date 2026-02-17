@@ -1172,13 +1172,38 @@ async function registrarClique(gesseiroId, tipo) {
 }
 
 // ========== COMPARTILHAR PERFIL ==========
-function compartilharPerfil(gesseiroId, nomeGesseiro) {
+async function compartilharPerfil(gesseiroId, nomeGesseiro) {
     const url = `${window.location.origin}/gesseiro.html?id=${gesseiroId}`;
     const texto = `Olha esse gesseiro profissional: ${nomeGesseiro}!`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + '\n' + url)}`;
     
     registrarClique(gesseiroId, 'compartilhar');
-    window.open(whatsappUrl, '_blank');
+
+    // Tentar usar Web Share API (nativo do celular)
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: `${nomeGesseiro} - SeuGesseiro`,
+                text: texto,
+                url: url
+            });
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                copiarLink(url);
+            }
+        }
+    } else {
+        // Fallback: copiar link
+        copiarLink(url);
+    }
+}
+
+function copiarLink(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+        alert('✅ Link copiado! Cole onde quiser compartilhar.');
+    } else {
+        prompt('Copie este link:', url);
+    }
 }
 
 carregarGesseiros();
