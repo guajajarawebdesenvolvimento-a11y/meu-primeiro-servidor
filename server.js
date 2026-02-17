@@ -1,4 +1,5 @@
 const express = require('express');
+const mercadopago = require('mercadopago');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
@@ -26,6 +27,31 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// ========== MERCADO PAGO ==========
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+const mpClient = new mercadopago.MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
+const mpPreference = new mercadopago.Preference(mpClient);
+const mpPayment = new mercadopago.Payment(mpClient);
+
+const PLANOS = {
+  profissional: {
+    nome: 'Plano Profissional',
+    preco: 30.00,
+    fotos: 9,
+    servicos: 9,
+    avaliacoes: true,
+    destaque: false
+  },
+  premium: {
+    nome: 'Plano Premium',
+    preco: 50.00,
+    fotos: 999,
+    servicos: 999,
+    avaliacoes: true,
+    destaque: true
+  }
+};
 
 // ========== MIDDLEWARES ==========
 app.use(express.json());
@@ -78,7 +104,6 @@ function verificarToken(req, res, next) {
     }
     req.gesseiroId = decoded.gesseiroId;
     req.email = decoded.email;
-    req.usuario = { gesseiroId: decoded.gesseiroId, usuarioId: decoded.usuarioId, email: decoded.email };
     next();
   });
 }
@@ -195,71 +220,6 @@ app.post('/api/geocode-reverso', async (req, res) => {
   }
 });
 
-// ========== FOTO DE PERFIL ==========
-app.post('/api/gesseiros/:id/foto-perfil', verificarToken, upload.single('foto'), async (req, res) => {
-  const gesseiroId = parseInt(req.params.id);
-  if (req.usuario.gesseiroId !== gesseiroId) return res.status(403).json({ erro: 'Sem permissão' });
-  if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada' });
-
-  try {
-    // Deletar foto anterior se existir
-    const gesseiro = await new Promise((resolve, reject) => {
-      db.buscarGesseiroPorId(gesseiroId, (err, g) => err ? reject(err) : resolve(g));
-    });
-
-    if (gesseiro && gesseiro.foto_perfil) {
-      const publicId = gesseiro.foto_perfil.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
-      try { await cloudinary.uploader.destroy(publicId); } catch(e) {}
-    }
-
-    const fotoUrl = req.file.path;
-    await new Promise((resolve, reject) => {
-      db.pool.query('UPDATE gesseiros SET foto_perfil = $1 WHERE id = $2', [fotoUrl, gesseiroId], (err) => err ? reject(err) : resolve());
-    });
-
-    res.json({ foto_perfil: fotoUrl });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: 'Erro ao salvar foto de perfil' });
-  }
-});
-
-// ========== ALTERAR EMAIL ==========
-app.put('/api/usuarios/alterar-email', verificarToken, async (req, res) => {
-  const { novoEmail, senha } = req.body;
-  if (!novoEmail || !senha) return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
-
-  try {
-    const usuario = await new Promise((resolve, reject) => {
-      db.pool.query('SELECT * FROM usuarios WHERE id = $1', [req.usuario.usuarioId], (err, result) => {
-        if (err) reject(err);
-        else resolve(result.rows[0]);
-      });
-    });
-
-    if (!usuario) return res.status(404).json({ erro: 'Usuário não encontrado' });
-
-    const senhaOk = await bcrypt.compare(senha, usuario.senha);
-    if (!senhaOk) return res.status(401).json({ erro: 'Senha incorreta' });
-
-    // Verificar se email já existe
-    const emailExiste = await new Promise((resolve, reject) => {
-      db.pool.query('SELECT id FROM usuarios WHERE email = $1 AND id != $2', [novoEmail, usuario.id], (err, result) => {
-        if (err) reject(err);
-        else resolve(result.rows.length > 0);
-      });
-    });
-
-    if (emailExiste) return res.status(400).json({ erro: 'Este email já está em uso' });
-
-    await db.pool.query('UPDATE usuarios SET email = $1 WHERE id = $2', [novoEmail, usuario.id]);
-    res.json({ mensagem: 'Email alterado com sucesso' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: 'Erro ao alterar email' });
-  }
-});
-
 // ========== CADASTRO COMPLETO ==========
 app.post('/api/cadastro-completo', async (req, res) => {
   const { nome, cidade, telefone, email, instagram, descricao, senha, endereco, latitude, longitude } = req.body;
@@ -303,11 +263,8 @@ app.post('/api/cadastro-completo', async (req, res) => {
 
             console.log('✅ Usuário criado!');
 
-            db.pool.query('SELECT id FROM usuarios WHERE email = $1', [email]).then(r => {
-              const usuarioId = r.rows[0] ? r.rows[0].id : null;
-            }).catch(() => {});
             const token = jwt.sign(
-              { gesseiroId: gesseiroId, email: email, usuarioId: null },
+              { gesseiroId: gesseiroId, email: email },
               JWT_SECRET,
               { expiresIn: '7d' }
             );
@@ -359,7 +316,7 @@ app.post('/api/login', (req, res) => {
       }
 
       const token = jwt.sign(
-        { gesseiroId: gesseiro.id, email: email, usuarioId: usuario.id },
+        { gesseiroId: gesseiro.id, email: email },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -755,6 +712,167 @@ app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
     console.log('🗑️ Avaliação deletada - ID:', avaliacaoId);
     res.json({ mensagem: 'Avaliação deletada com sucesso!' });
   });
+});
+
+// ========== ROTAS DE PLANOS ==========
+
+// Buscar plano atual do gesseiro
+app.get('/api/gesseiros/:id/plano', async (req, res) => {
+  const gesseiroId = parseInt(req.params.id);
+  try {
+    const result = await db.pool.query(
+      'SELECT * FROM planos WHERE gesseiro_id = $1 ORDER BY data_criacao DESC LIMIT 1',
+      [gesseiroId]
+    );
+    if (result.rows.length === 0) {
+      return res.json({ plano: 'free', ativo: true, fotos: 3, servicos: 2, destaque: false });
+    }
+    const plano = result.rows[0];
+    const ativo = plano.status === 'ativo' && new Date(plano.data_expiracao) > new Date();
+    res.json({
+      plano: ativo ? plano.tipo_plano : 'free',
+      ativo,
+      data_expiracao: plano.data_expiracao,
+      fotos: ativo ? PLANOS[plano.tipo_plano]?.fotos || 3 : 3,
+      servicos: ativo ? PLANOS[plano.tipo_plano]?.servicos || 2 : 2,
+      destaque: ativo ? PLANOS[plano.tipo_plano]?.destaque || false : false
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao buscar plano' });
+  }
+});
+
+// Criar preferência de pagamento
+app.post('/api/planos/criar-pagamento', verificarToken, async (req, res) => {
+  const { tipo_plano } = req.body;
+  const gesseiroId = req.gesseiroId;
+
+  if (!PLANOS[tipo_plano]) return res.status(400).json({ erro: 'Plano inválido' });
+
+  const plano = PLANOS[tipo_plano];
+
+  try {
+    // Buscar dados do gesseiro
+    const gesseiro = await new Promise((resolve, reject) => {
+      db.buscarGesseiroPorId(gesseiroId, (err, g) => err ? reject(err) : resolve(g));
+    });
+
+    const preference = await mpPreference.create({
+      body: {
+        items: [{
+          title: plano.nome + ' - SeuGesseiro',
+          quantity: 1,
+          unit_price: plano.preco,
+          currency_id: 'BRL'
+        }],
+        payer: {
+          name: gesseiro.nome,
+          email: gesseiro.email || req.email
+        },
+        back_urls: {
+          success: `https://seugesseiro.com.br/planos.html?status=sucesso&plano=${tipo_plano}&gesseiro=${gesseiroId}`,
+          failure: `https://seugesseiro.com.br/planos.html?status=falhou`,
+          pending: `https://seugesseiro.com.br/planos.html?status=pendente`
+        },
+        auto_return: 'approved',
+        external_reference: `${gesseiroId}-${tipo_plano}-${Date.now()}`,
+        notification_url: `https://seugesseiro.com.br/api/planos/webhook`
+      }
+    });
+
+    // Salvar tentativa de pagamento
+    await db.pool.query(
+      'INSERT INTO pagamentos (gesseiro_id, tipo_plano, valor, status, preference_id) VALUES ($1, $2, $3, $4, $5)',
+      [gesseiroId, tipo_plano, plano.preco, 'pendente', preference.id]
+    );
+
+    res.json({ 
+      init_point: preference.init_point,
+      preference_id: preference.id
+    });
+  } catch (err) {
+    console.error('Erro MP:', err);
+    res.status(500).json({ erro: 'Erro ao criar pagamento' });
+  }
+});
+
+// Webhook do Mercado Pago
+app.post('/api/planos/webhook', async (req, res) => {
+  const { type, data } = req.body;
+  
+  if (type === 'payment') {
+    try {
+      const payment = await mpPayment.get({ id: data.id });
+      
+      if (payment.status === 'approved') {
+        const ref = payment.external_reference;
+        const [gesseiroId, tipo_plano] = ref.split('-');
+        
+        // Calcular expiração (30 dias)
+        const dataExpiracao = new Date();
+        dataExpiracao.setDate(dataExpiracao.getDate() + 30);
+
+        // Ativar plano
+        await db.pool.query(
+          `INSERT INTO planos (gesseiro_id, tipo_plano, status, data_expiracao, payment_id)
+           VALUES ($1, $2, 'ativo', $3, $4)
+           ON CONFLICT (gesseiro_id) DO UPDATE SET tipo_plano=$2, status='ativo', data_expiracao=$3, payment_id=$4`,
+          [parseInt(gesseiroId), tipo_plano, dataExpiracao, payment.id]
+        );
+
+        // Atualizar pagamento
+        await db.pool.query(
+          'UPDATE pagamentos SET status=$1, payment_id=$2 WHERE preference_id=$3',
+          ['aprovado', payment.id, payment.preference_id]
+        );
+
+        console.log(`✅ Plano ${tipo_plano} ativado para gesseiro ${gesseiroId}`);
+      }
+    } catch (err) {
+      console.error('Erro webhook:', err);
+    }
+  }
+  res.sendStatus(200);
+});
+
+// Verificar pagamento por retorno do MP
+app.get('/api/planos/verificar', verificarToken, async (req, res) => {
+  const { payment_id, external_reference } = req.query;
+  const gesseiroId = req.gesseiroId;
+
+  if (!external_reference) return res.status(400).json({ erro: 'Referência inválida' });
+
+  try {
+    const [refGesseiroId, tipo_plano] = external_reference.split('-');
+    
+    if (parseInt(refGesseiroId) !== gesseiroId) {
+      return res.status(403).json({ erro: 'Sem permissão' });
+    }
+
+    if (payment_id) {
+      const payment = await mpPayment.get({ id: payment_id });
+      
+      if (payment.status === 'approved') {
+        const dataExpiracao = new Date();
+        dataExpiracao.setDate(dataExpiracao.getDate() + 30);
+
+        await db.pool.query(
+          `INSERT INTO planos (gesseiro_id, tipo_plano, status, data_expiracao, payment_id)
+           VALUES ($1, $2, 'ativo', $3, $4)
+           ON CONFLICT (gesseiro_id) DO UPDATE SET tipo_plano=$2, status='ativo', data_expiracao=$3, payment_id=$4`,
+          [gesseiroId, tipo_plano, dataExpiracao, payment_id]
+        );
+
+        return res.json({ sucesso: true, plano: tipo_plano });
+      }
+    }
+
+    res.json({ sucesso: false });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao verificar pagamento' });
+  }
 });
 
 // ========== INICIAR SERVIDOR ==========

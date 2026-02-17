@@ -22,15 +22,9 @@ async function inicializarBanco() {
         endereco TEXT,
         latitude REAL,
         longitude REAL,
-        foto_perfil TEXT,
         data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Adicionar foto_perfil se não existir (para bancos existentes)
-    try {
-      await client.query('ALTER TABLE gesseiros ADD COLUMN IF NOT EXISTS foto_perfil TEXT');
-    } catch(e) {}
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS fotos (
@@ -82,6 +76,33 @@ async function inicializarBanco() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS planos (
+        id SERIAL PRIMARY KEY,
+        gesseiro_id INTEGER NOT NULL UNIQUE,
+        tipo_plano TEXT NOT NULL DEFAULT 'free',
+        status TEXT NOT NULL DEFAULT 'ativo',
+        data_expiracao TIMESTAMP,
+        payment_id TEXT,
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (gesseiro_id) REFERENCES gesseiros(id) ON DELETE CASCADE
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pagamentos (
+        id SERIAL PRIMARY KEY,
+        gesseiro_id INTEGER NOT NULL,
+        tipo_plano TEXT NOT NULL,
+        valor REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pendente',
+        preference_id TEXT,
+        payment_id TEXT,
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (gesseiro_id) REFERENCES gesseiros(id) ON DELETE CASCADE
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
@@ -119,7 +140,7 @@ function inserirGesseiro(dados, callback) {
     INSERT INTO gesseiros (nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
   `;
-  pool.query(sql, [nome, cidade, telefone, email || null, instagram || null, descricao, endereco || null, latitude || null, longitude || null])
+  pool.query(sql, [nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude])
     .then(result => callback(null, result.rows[0]))
     .catch(err => callback(err, null));
 }
