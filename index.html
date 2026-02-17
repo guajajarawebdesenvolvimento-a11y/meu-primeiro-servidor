@@ -494,6 +494,28 @@
             color: white;
         }
 
+        .btn-compartilhar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .btn-compartilhar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+
         /* ===== MODAL GALERIA ===== */
         .modal-galeria {
             display: none;
@@ -1101,13 +1123,16 @@ function criarCard(gesseiro) {
             ${fotosHTML}
             ${mapaHTML}
             <div class="card-actions">
-                <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation()">
+                <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation(); registrarClique(${gesseiro.id}, 'whatsapp')">
                     💬 WhatsApp
                 </a>
                 <button class="btn-avaliar" onclick="event.stopPropagation(); abrirModalAvaliacao(${gesseiro.id}, '${gesseiro.nome}')">
                     ⭐ Avaliar
                 </button>
             </div>
+            <button class="btn-compartilhar" style="margin-top:10px;" onclick="event.stopPropagation(); compartilharPerfil(${gesseiro.id}, '${gesseiro.nome.replace(/'/g, "\\'")}')">
+                🔗 Compartilhar
+            </button>
         </div>`;
 
     return card;
@@ -1132,6 +1157,29 @@ document.getElementById('filtroOrdenacao').addEventListener('change', e => {
     else if (criterio === 'avaliacoes') ordenados.sort((a,b) => (b.media_avaliacoes||0) - (a.media_avaliacoes||0));
     exibirTodosGesseiros(ordenados);
 });
+
+// ========== REGISTRAR CLIQUES ==========
+async function registrarClique(gesseiroId, tipo) {
+    try {
+        await fetch(`/api/cliques/${gesseiroId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo })
+        });
+    } catch (err) {
+        console.error('Erro ao registrar clique:', err);
+    }
+}
+
+// ========== COMPARTILHAR PERFIL ==========
+function compartilharPerfil(gesseiroId, nomeGesseiro) {
+    const url = `${window.location.origin}?gesseiro=${gesseiroId}`;
+    const texto = `Olha esse gesseiro profissional: ${nomeGesseiro}!`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}`;
+    
+    registrarClique(gesseiroId, 'compartilhar');
+    window.open(whatsappUrl, '_blank');
+}
 
 carregarGesseiros();
 </script>
