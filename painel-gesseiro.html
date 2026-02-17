@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Gesseiro - FASE 1</title>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_pMBr9EehGOeOyuVdH_peUfWVfDkCSKw&callback=initMap"></script>
     <style>
         * {
             margin: 0;
@@ -406,9 +407,20 @@
                     <textarea id="descricao" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="endereco">📍 Endereço Completo</label>
-                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade - CE">
-                    <small style="color: #666; font-size: 12px;">Ex: Av. Beira Mar, 1000, Meireles, Fortaleza - CE</small>
+                    <label>📍 Sua Localização no Mapa</label>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="enderecoBusca" placeholder="Digite seu endereço para buscar..." style="flex:1;">
+                        <button type="button" onclick="buscarEndereco()" class="btn" style="width:auto; padding: 10px 15px;">🔍 Buscar</button>
+                        <button type="button" onclick="usarMinhaLocalizacao()" class="btn btn-success" style="width:auto; padding: 10px 15px;">📍 Minha Localização</button>
+                    </div>
+                    <div id="mapaPainel" style="width:100%; height:300px; border-radius:10px; border:2px solid #e0e0e0; background:#f5f5f5; display:flex; align-items:center; justify-content:center;">
+                        <p style="color:#999;">🗺️ Carregando mapa...</p>
+                    </div>
+                    <small style="color:#666; font-size:12px;">📌 Clique no mapa ou use os botões para definir sua localização</small>
+                    <input type="hidden" id="latitude">
+                    <input type="hidden" id="longitude">
+                    <input type="hidden" id="endereco">
+                    <div id="enderecoConfirmado" style="display:none; margin-top:8px; padding:8px 12px; background:#d4edda; border-radius:8px; color:#155724; font-size:13px;"></div>
                 </div>
                 <button type="submit" class="btn">💾 Salvar Alterações</button>
             </form>
@@ -556,6 +568,18 @@
                 document.getElementById('instagram').value = data.instagram || '';
                 document.getElementById('descricao').value = data.descricao;
                 document.getElementById('endereco').value = data.endereco || '';
+                document.getElementById('enderecoBusca').value = data.endereco || '';
+                if (data.latitude && data.longitude) {
+                    document.getElementById('latitude').value = data.latitude;
+                    document.getElementById('longitude').value = data.longitude;
+                    if (mapaIniciado) {
+                        const pos = { lat: parseFloat(data.latitude), lng: parseFloat(data.longitude) };
+                        marcador.setPosition(pos);
+                        mapa.setCenter(pos);
+                        mapa.setZoom(15);
+                        mostrarEnderecoConfirmado(data.endereco || `${data.latitude}, ${data.longitude}`);
+                    }
+                }
             } catch (error) {
                 mostrarAlerta('Erro ao carregar perfil', 'error');
             }
@@ -574,22 +598,12 @@
                 endereco: document.getElementById('endereco').value
             };
 
-            // Buscar coordenadas se endereço foi preenchido
-            if (dados.endereco) {
-                try {
-                    const geoResponse = await fetch('/api/geocode', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ endereco: dados.endereco })
-                    });
-                    if (geoResponse.ok) {
-                        const geoData = await geoResponse.json();
-                        dados.latitude = geoData.latitude;
-                        dados.longitude = geoData.longitude;
-                    }
-                } catch (e) {
-                    console.log('Não foi possível buscar coordenadas');
-                }
+            // Pegar coordenadas do mapa
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            if (lat && lng) {
+                dados.latitude = parseFloat(lat);
+                dados.longitude = parseFloat(lng);
             }
 
             try {
@@ -799,6 +813,129 @@
         carregarPerfil();
         carregarFotos();
         carregarServicos();
+
+        // ========== MAPA INTERATIVO ==========
+        let mapa, marcador, mapaIniciado = false;
+
+        function initMap() {
+            const posInicial = { lat: -3.7327, lng: -38.5270 }; // Fortaleza como padrão
+
+            mapa = new google.maps.Map(document.getElementById('mapaPainel'), {
+                center: posInicial,
+                zoom: 12,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+
+            marcador = new google.maps.Marker({
+                position: posInicial,
+                map: mapa,
+                draggable: true,
+                title: 'Sua localização'
+            });
+
+            mapaIniciado = true;
+
+            // Clique no mapa
+            mapa.addListener('click', (e) => {
+                const pos = e.latLng;
+                marcador.setPosition(pos);
+                document.getElementById('latitude').value = pos.lat();
+                document.getElementById('longitude').value = pos.lng();
+                buscarEnderecoReverso(pos.lat(), pos.lng());
+            });
+
+            // Arrastar marcador
+            marcador.addListener('dragend', (e) => {
+                const pos = e.latLng;
+                document.getElementById('latitude').value = pos.lat();
+                document.getElementById('longitude').value = pos.lng();
+                buscarEnderecoReverso(pos.lat(), pos.lng());
+            });
+
+            // Se já tem localização salva, centraliza lá
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            if (lat && lng) {
+                const pos = { lat: parseFloat(lat), lng: parseFloat(lng) };
+                marcador.setPosition(pos);
+                mapa.setCenter(pos);
+                mapa.setZoom(15);
+            }
+        }
+
+        function buscarEndereco() {
+            const endereco = document.getElementById('enderecoBusca').value;
+            if (!endereco) return;
+
+            fetch('/api/geocode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endereco })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.latitude && data.longitude) {
+                    const pos = { lat: data.latitude, lng: data.longitude };
+                    marcador.setPosition(pos);
+                    mapa.setCenter(pos);
+                    mapa.setZoom(15);
+                    document.getElementById('latitude').value = data.latitude;
+                    document.getElementById('longitude').value = data.longitude;
+                    document.getElementById('endereco').value = data.endereco_formatado || endereco;
+                    mostrarEnderecoConfirmado(data.endereco_formatado || endereco);
+                } else {
+                    mostrarAlerta('❌ Endereço não encontrado', 'error');
+                }
+            })
+            .catch(() => mostrarAlerta('❌ Erro ao buscar endereço', 'error'));
+        }
+
+        function usarMinhaLocalizacao() {
+            if (!navigator.geolocation) {
+                mostrarAlerta('❌ Geolocalização não suportada', 'error');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const posObj = { lat, lng };
+                marcador.setPosition(posObj);
+                mapa.setCenter(posObj);
+                mapa.setZoom(15);
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+                buscarEnderecoReverso(lat, lng);
+            }, () => {
+                mostrarAlerta('❌ Não foi possível obter sua localização', 'error');
+            });
+        }
+
+        function buscarEnderecoReverso(lat, lng) {
+            fetch('/api/geocode-reverso', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude: lat, longitude: lng })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.endereco) {
+                    document.getElementById('endereco').value = data.endereco;
+                    document.getElementById('enderecoBusca').value = data.endereco;
+                    mostrarEnderecoConfirmado(data.endereco);
+                }
+            })
+            .catch(() => {
+                document.getElementById('endereco').value = `${lat}, ${lng}`;
+                mostrarEnderecoConfirmado(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            });
+        }
+
+        function mostrarEnderecoConfirmado(texto) {
+            const div = document.getElementById('enderecoConfirmado');
+            div.style.display = 'block';
+            div.textContent = '📍 ' + texto;
+        }
     </script>
 </body>
 </html>

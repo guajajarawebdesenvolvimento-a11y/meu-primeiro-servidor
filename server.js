@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -161,6 +160,30 @@ app.post('/api/geocode', async (req, res) => {
   } catch (error) {
     console.error('Erro no geocoding:', error);
     res.status(500).json({ erro: 'Erro ao buscar coordenadas' });
+  }
+});
+
+// ========== GEOCODING REVERSO (LAT/LNG → ENDEREÇO) ==========
+app.post('/api/geocode-reverso', async (req, res) => {
+  const { latitude, longitude } = req.body;
+  if (!latitude || !longitude) {
+    return res.status(400).json({ erro: 'Latitude e longitude são obrigatórios' });
+  }
+  try {
+    const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+      params: {
+        latlng: `${latitude},${longitude}`,
+        key: GOOGLE_MAPS_API_KEY
+      }
+    });
+    if (response.data.results && response.data.results.length > 0) {
+      res.json({ endereco: response.data.results[0].formatted_address });
+    } else {
+      res.status(404).json({ erro: 'Endereço não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro no geocoding reverso:', error);
+    res.status(500).json({ erro: 'Erro ao buscar endereço' });
   }
 });
 
