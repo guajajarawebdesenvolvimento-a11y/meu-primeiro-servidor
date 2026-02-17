@@ -405,6 +405,11 @@
                     <label for="descricao">Descrição Profissional</label>
                     <textarea id="descricao" required></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="endereco">📍 Endereço Completo</label>
+                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade - CE">
+                    <small style="color: #666; font-size: 12px;">Ex: Av. Beira Mar, 1000, Meireles, Fortaleza - CE</small>
+                </div>
                 <button type="submit" class="btn">💾 Salvar Alterações</button>
             </form>
         </div>
@@ -550,6 +555,7 @@
                 document.getElementById('telefone').value = data.telefone;
                 document.getElementById('instagram').value = data.instagram || '';
                 document.getElementById('descricao').value = data.descricao;
+                document.getElementById('endereco').value = data.endereco || '';
             } catch (error) {
                 mostrarAlerta('Erro ao carregar perfil', 'error');
             }
@@ -564,8 +570,27 @@
                 cidade: document.getElementById('cidade').value,
                 telefone: document.getElementById('telefone').value,
                 instagram: document.getElementById('instagram').value,
-                descricao: document.getElementById('descricao').value
+                descricao: document.getElementById('descricao').value,
+                endereco: document.getElementById('endereco').value
             };
+
+            // Buscar coordenadas se endereço foi preenchido
+            if (dados.endereco) {
+                try {
+                    const geoResponse = await fetch('/api/geocode', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endereco: dados.endereco })
+                    });
+                    if (geoResponse.ok) {
+                        const geoData = await geoResponse.json();
+                        dados.latitude = geoData.latitude;
+                        dados.longitude = geoData.longitude;
+                    }
+                } catch (e) {
+                    console.log('Não foi possível buscar coordenadas');
+                }
+            }
 
             try {
                 const response = await fetch(`/api/gesseiros/${gesseiroId}`, {
