@@ -78,6 +78,7 @@ function verificarToken(req, res, next) {
     }
     req.gesseiroId = decoded.gesseiroId;
     req.email = decoded.email;
+    req.usuario = { gesseiroId: decoded.gesseiroId, usuarioId: decoded.usuarioId, email: decoded.email };
     next();
   });
 }
@@ -194,6 +195,71 @@ app.post('/api/geocode-reverso', async (req, res) => {
   }
 });
 
+// ========== FOTO DE PERFIL ==========
+app.post('/api/gesseiros/:id/foto-perfil', autenticar, upload.single('foto'), async (req, res) => {
+  const gesseiroId = parseInt(req.params.id);
+  if (req.usuario.gesseiroId !== gesseiroId) return res.status(403).json({ erro: 'Sem permissão' });
+  if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada' });
+
+  try {
+    // Deletar foto anterior se existir
+    const gesseiro = await new Promise((resolve, reject) => {
+      db.buscarGesseiroPorId(gesseiroId, (err, g) => err ? reject(err) : resolve(g));
+    });
+
+    if (gesseiro && gesseiro.foto_perfil) {
+      const publicId = gesseiro.foto_perfil.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+      try { await cloudinary.uploader.destroy(publicId); } catch(e) {}
+    }
+
+    const fotoUrl = req.file.path;
+    await new Promise((resolve, reject) => {
+      db.pool.query('UPDATE gesseiros SET foto_perfil = $1 WHERE id = $2', [fotoUrl, gesseiroId], (err) => err ? reject(err) : resolve());
+    });
+
+    res.json({ foto_perfil: fotoUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao salvar foto de perfil' });
+  }
+});
+
+// ========== ALTERAR EMAIL ==========
+app.put('/api/usuarios/alterar-email', autenticar, async (req, res) => {
+  const { novoEmail, senha } = req.body;
+  if (!novoEmail || !senha) return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+
+  try {
+    const usuario = await new Promise((resolve, reject) => {
+      db.pool.query('SELECT * FROM usuarios WHERE id = $1', [req.usuario.usuarioId], (err, result) => {
+        if (err) reject(err);
+        else resolve(result.rows[0]);
+      });
+    });
+
+    if (!usuario) return res.status(404).json({ erro: 'Usuário não encontrado' });
+
+    const senhaOk = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaOk) return res.status(401).json({ erro: 'Senha incorreta' });
+
+    // Verificar se email já existe
+    const emailExiste = await new Promise((resolve, reject) => {
+      db.pool.query('SELECT id FROM usuarios WHERE email = $1 AND id != $2', [novoEmail, usuario.id], (err, result) => {
+        if (err) reject(err);
+        else resolve(result.rows.length > 0);
+      });
+    });
+
+    if (emailExiste) return res.status(400).json({ erro: 'Este email já está em uso' });
+
+    await db.pool.query('UPDATE usuarios SET email = $1 WHERE id = $2', [novoEmail, usuario.id]);
+    res.json({ mensagem: 'Email alterado com sucesso' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao alterar email' });
+  }
+});
+
 // ========== CADASTRO COMPLETO ==========
 app.post('/api/cadastro-completo', async (req, res) => {
   const { nome, cidade, telefone, email, instagram, descricao, senha, endereco, latitude, longitude } = req.body;
@@ -237,8 +303,11 @@ app.post('/api/cadastro-completo', async (req, res) => {
 
             console.log('✅ Usuário criado!');
 
+            db.pool.query('SELECT id FROM usuarios WHERE email = $1', [email]).then(r => {
+              const usuarioId = r.rows[0] ? r.rows[0].id : null;
+            }).catch(() => {});
             const token = jwt.sign(
-              { gesseiroId: gesseiroId, email: email },
+              { gesseiroId: gesseiroId, email: email, usuarioId: null },
               JWT_SECRET,
               { expiresIn: '7d' }
             );
@@ -290,7 +359,7 @@ app.post('/api/login', (req, res) => {
       }
 
       const token = jwt.sign(
-        { gesseiroId: gesseiro.id, email: email },
+        { gesseiroId: gesseiro.id, email: email, usuarioId: usuario.id },
         JWT_SECRET,
         { expiresIn: '7d' }
       );

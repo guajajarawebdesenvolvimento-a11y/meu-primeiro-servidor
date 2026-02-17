@@ -378,6 +378,41 @@
     <div class="container">
         <div id="alertaPrincipal" class="alert"></div>
 
+        <!-- SEÇÃO: FOTO DE PERFIL -->
+        <div class="section">
+            <h2>🖼️ Foto de Perfil</h2>
+            <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                <div id="fotoPerfilPreview" style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; font-size:40px; color:white; overflow:hidden; border:3px solid #e0e0e0;">
+                    <span id="inicialPerfil">?</span>
+                </div>
+                <div style="flex:1;">
+                    <p style="color:#666; font-size:14px; margin-bottom:12px;">Sua foto aparece para os clientes no seu card. Escolha uma foto profissional!</p>
+                    <form id="formFotoPerfil">
+                        <input type="file" id="fotoPerfil" accept="image/*" style="margin-bottom:10px;">
+                        <button type="submit" class="btn" style="width:auto; padding:10px 20px;">📸 Salvar Foto de Perfil</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO: ALTERAR EMAIL -->
+        <div class="section">
+            <h2>📧 Alterar Email</h2>
+            <form id="formEmail">
+                <div class="row">
+                    <div class="form-group">
+                        <label>Novo Email</label>
+                        <input type="email" id="novoEmail" placeholder="novo@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha Atual (para confirmar)</label>
+                        <input type="password" id="senhaConfirmEmail" placeholder="Digite sua senha" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">💾 Alterar Email</button>
+            </form>
+        </div>
+
         <!-- SEÇÃO: EDITAR PERFIL -->
         <div class="section">
             <h2>✏️ Editar Perfil</h2>
@@ -563,6 +598,15 @@
                 const data = await response.json();
 
                 document.getElementById('nome').value = data.nome;
+                document.getElementById('inicialPerfil').textContent = data.nome.charAt(0).toUpperCase();
+                if (data.foto_perfil) {
+                    const img = document.createElement('img');
+                    img.src = data.foto_perfil;
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                    const preview = document.getElementById('fotoPerfilPreview');
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
+                }
                 document.getElementById('cidade').value = data.cidade;
                 document.getElementById('telefone').value = data.telefone;
                 document.getElementById('instagram').value = data.instagram || '';
@@ -814,11 +858,70 @@
         carregarFotos();
         carregarServicos();
 
+        // ========== FOTO DE PERFIL ==========
+        document.getElementById('formFotoPerfil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('fotoPerfil').files[0];
+            if (!file) { mostrarAlerta('❌ Selecione uma foto', 'error'); return; }
+
+            const formData = new FormData();
+            formData.append('foto', file);
+
+            try {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/foto-perfil`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta('✅ Foto de perfil atualizada!', 'success');
+                    const img = document.createElement('img');
+                    img.src = data.foto_perfil;
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                    const preview = document.getElementById('fotoPerfilPreview');
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
+                } else {
+                    mostrarAlerta('❌ Erro ao salvar foto', 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao conectar', 'error');
+            }
+        });
+
+        // ========== ALTERAR EMAIL ==========
+        document.getElementById('formEmail').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const novoEmail = document.getElementById('novoEmail').value;
+            const senha = document.getElementById('senhaConfirmEmail').value;
+
+            try {
+                const response = await fetch(`/api/usuarios/alterar-email`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ novoEmail, senha })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta('✅ Email alterado com sucesso!', 'success');
+                    document.getElementById('formEmail').reset();
+                } else {
+                    mostrarAlerta('❌ ' + (data.erro || 'Erro ao alterar email'), 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao conectar', 'error');
+            }
+        });
+
         // ========== MAPA INTERATIVO ==========
         let mapa, marcador, mapaIniciado = false;
 
         function initMap() {
-            const posInicial = { lat: -3.7327, lng: -38.5270 }; // Fortaleza como padrão
+            const posInicial = { lat: -5.8222, lng: -46.1408 }; // Grajaú - MA
 
             mapa = new google.maps.Map(document.getElementById('mapaPainel'), {
                 center: posInicial,
