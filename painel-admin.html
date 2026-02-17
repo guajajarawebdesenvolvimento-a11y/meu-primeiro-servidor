@@ -281,6 +281,8 @@
         <div class="tabs">
             <button class="tab active" onclick="trocarAba('usuarios')">👥 Usuários Cadastrados</button>
             <button class="tab" onclick="trocarAba('gesseiros')">👷 Todos os Gesseiros</button>
+            <button class="tab" onclick="trocarAba('planos')">💎 Planos Ativos</button>
+            <button class="tab" onclick="trocarAba('receitas')">💰 Receitas</button>
         </div>
 
         <!-- CONTEÚDO TAB USUÁRIOS -->
@@ -337,6 +339,26 @@
         </div>
     </div>
 
+    <!-- TAB PLANOS -->
+    <div id="tabPlanos" class="tab-content">
+        <div class="section">
+            <h2>💎 Planos Ativos dos Gesseiros</h2>
+            <div id="planosLista" class="loading">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- TAB RECEITAS -->
+    <div id="tabReceitas" class="tab-content">
+        <div class="section">
+            <h2>💰 Receitas e Pagamentos</h2>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                <h3 style="font-size: 42px; margin-bottom: 10px;" id="receitaTotal">R$ 0,00</h3>
+                <p style="opacity: 0.9;">Total de Receitas (Pagamentos Aprovados)</p>
+            </div>
+            <div id="receitasLista" class="loading">Carregando...</div>
+        </div>
+    </div>
+
     <script>
         const adminToken = localStorage.getItem('adminToken');
         const adminNome = localStorage.getItem('adminNome');
@@ -382,6 +404,14 @@
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('tabGesseiros').classList.add('active');
                 carregarTodosGesseiros();
+            } else if (aba === 'planos') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('tabPlanos').classList.add('active');
+                carregarPlanos();
+            } else if (aba === 'receitas') {
+                document.querySelectorAll('.tab')[3].classList.add('active');
+                document.getElementById('tabReceitas').classList.add('active');
+                carregarReceitas();
             }
         }
 
@@ -534,7 +564,133 @@
 
         function verDetalhes(gesseiroId) {
             if (gesseiroId) {
-                window.open(`index.html`, '_blank');
+                window.open(`/gesseiro.html?id=${gesseiroId}`, '_blank');
+            }
+        }
+
+        // CARREGAR PLANOS
+        async function carregarPlanos() {
+            try {
+                const response = await fetch('/api/admin/planos', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                const planos = await response.json();
+
+                const container = document.getElementById('planosLista');
+                if (planos.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum plano ativo</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr><th>Nome</th><th>Email</th><th>Cidade</th><th>Plano</th><th>Status</th><th>Expira em</th><th>Fotos</th><th>Serviços</th><th>Ações</th></tr></thead><tbody>';
+
+                planos.forEach(p => {
+                    const planoNome = p.plano === 'free' ? 'Free' : p.plano === 'profissional' ? 'Profissional' : 'Premium';
+                    const planoColor = p.plano === 'free' ? '#999' : p.plano === 'profissional' ? '#3b82f6' : '#f59e0b';
+                    const statusColor = p.status === 'ativo' ? 'success' : 'warning';
+                    const expiracao = p.data_expiracao ? new Date(p.data_expiracao).toLocaleDateString('pt-BR') : '—';
+
+                    html += `
+                        <tr>
+                            <td>${p.nome}</td>
+                            <td>${p.email}</td>
+                            <td>${p.cidade}</td>
+                            <td><span class="badge" style="background:${planoColor}; color:white;">${planoNome}</span></td>
+                            <td><span class="badge ${statusColor}">${p.status || 'free'}</span></td>
+                            <td>${expiracao}</td>
+                            <td>${p.total_fotos}/∞</td>
+                            <td>${p.total_servicos}/∞</td>
+                            <td>
+                                <button class="btn btn-view" onclick="ativarPlanoManual(${p.gesseiro_id}, '${p.nome}')">💎 Ativar Plano</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('planosLista').innerHTML = '<p style="color:red;">Erro ao carregar planos</p>';
+            }
+        }
+
+        // CARREGAR RECEITAS
+        async function carregarReceitas() {
+            try {
+                const response = await fetch('/api/admin/receitas', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('receitaTotal').textContent = `R$ ${data.total_receita.toFixed(2)}`;
+
+                const container = document.getElementById('receitasLista');
+                if (data.pagamentos.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum pagamento registrado</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr><th>Gesseiro</th><th>Plano</th><th>Valor</th><th>Status</th><th>Payment ID</th><th>Data</th></tr></thead><tbody>';
+
+                data.pagamentos.forEach(p => {
+                    const statusColor = p.status === 'aprovado' ? 'success' : p.status === 'pendente' ? 'warning' : 'error';
+                    const data_pag = new Date(p.data_criacao).toLocaleDateString('pt-BR');
+
+                    html += `
+                        <tr>
+                            <td>${p.gesseiro_nome}</td>
+                            <td>${p.tipo_plano}</td>
+                            <td><strong>R$ ${p.valor.toFixed(2)}</strong></td>
+                            <td><span class="badge ${statusColor}">${p.status}</span></td>
+                            <td style="font-size:11px; color:#999;">${p.payment_id || '—'}</td>
+                            <td>${data_pag}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('receitasLista').innerHTML = '<p style="color:red;">Erro ao carregar receitas</p>';
+            }
+        }
+
+        // ATIVAR PLANO MANUAL
+        async function ativarPlanoManual(gesseiroId, nomeGesseiro) {
+            const plano = prompt(`Ativar qual plano para ${nomeGesseiro}?\n\nDigite: profissional ou premium`);
+            if (!plano || (plano !== 'profissional' && plano !== 'premium')) {
+                alert('Plano inválido!');
+                return;
+            }
+
+            const dias = prompt('Por quantos dias? (padrão: 30)', '30');
+            if (!dias) return;
+
+            try {
+                const response = await fetch('/api/admin/planos/ativar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        gesseiro_id: gesseiroId,
+                        tipo_plano: plano,
+                        dias: parseInt(dias)
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta(`✅ Plano ${plano} ativado para ${nomeGesseiro} por ${dias} dias!`, 'success');
+                    carregarPlanos();
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao ativar plano', 'error');
             }
         }
 
