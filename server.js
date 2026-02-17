@@ -758,6 +758,10 @@ app.post('/api/planos/criar-pagamento', verificarToken, async (req, res) => {
       db.buscarGesseiroPorId(gesseiroId, (err, g) => err ? reject(err) : resolve(g));
     });
 
+    // Usar dados do token se gesseiro não encontrado
+    const nomeGesseiro = gesseiro ? gesseiro.nome : 'Gesseiro';
+    const emailGesseiro = gesseiro ? (gesseiro.email || req.email) : req.email;
+
     const preference = await mpPreference.create({
       body: {
         items: [{
@@ -767,8 +771,8 @@ app.post('/api/planos/criar-pagamento', verificarToken, async (req, res) => {
           currency_id: 'BRL'
         }],
         payer: {
-          name: gesseiro.nome,
-          email: gesseiro.email || req.email
+          name: nomeGesseiro,
+          email: emailGesseiro
         },
         back_urls: {
           success: `https://seugesseiro.com.br/planos.html?status=sucesso&plano=${tipo_plano}&gesseiro=${gesseiroId}`,
