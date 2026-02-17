@@ -103,6 +103,17 @@ async function inicializarBanco() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS cliques (
+        id SERIAL PRIMARY KEY,
+        gesseiro_id INTEGER NOT NULL,
+        tipo TEXT NOT NULL,
+        ip_cliente TEXT,
+        data_clique TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (gesseiro_id) REFERENCES gesseiros(id) ON DELETE CASCADE
+      )
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS admins (
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,

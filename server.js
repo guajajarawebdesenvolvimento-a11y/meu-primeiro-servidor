@@ -255,13 +255,26 @@ app.post('/api/cadastro-completo', async (req, res) => {
 
           const senhaHash = await bcrypt.hash(senha, 10);
 
-          db.inserirUsuario(email, senhaHash, gesseiroId, (err) => {
+          db.inserirUsuario(email, senhaHash, gesseiroId, async (err) => {
             if (err) {
               console.error('Erro ao criar usuário:', err);
               return res.status(500).json({ erro: 'Erro ao criar usuário' });
             }
 
             console.log('✅ Usuário criado!');
+
+            // 🎁 CRIAR PLANO PREMIUM GRÁTIS ATÉ 01/04/2025
+            const dataExpiracao = new Date('2025-04-01T23:59:59');
+            try {
+              await db.pool.query(
+                `INSERT INTO planos (gesseiro_id, tipo_plano, status, data_expiracao)
+                 VALUES ($1, 'premium', 'ativo', $2)`,
+                [gesseiroId, dataExpiracao]
+              );
+              console.log('🎉 Plano Premium GRÁTIS ativado até 01/04/2025!');
+            } catch (planoErr) {
+              console.error('Erro ao criar plano premium:', planoErr);
+            }
 
             const token = jwt.sign(
               { gesseiroId: gesseiroId, email: email },
@@ -270,7 +283,7 @@ app.post('/api/cadastro-completo', async (req, res) => {
             );
 
             res.json({
-              mensagem: 'Cadastro realizado com sucesso!',
+              mensagem: 'Cadastro realizado com sucesso! Você ganhou o Plano Premium GRÁTIS até 01/04/2025! 🎉',
               token: token,
               gesseiroId: gesseiroId,
               nome: nome
@@ -753,6 +766,91 @@ app.get('/api/admin/estatisticas', verificarTokenAdmin, (req, res) => {
   });
 });
 
+// ========== ADMIN: PLANOS E RECEITAS ==========
+app.get('/api/admin/planos', verificarTokenAdmin, async (req, res) => {
+  try {
+    const result = await db.pool.query(`
+      SELECT 
+        g.id as gesseiro_id,
+        g.nome,
+        g.email,
+        g.cidade,
+        g.telefone,
+        COALESCE(p.tipo_plano, 'free') as plano,
+        p.status,
+        p.data_expiracao,
+        p.data_criacao as data_ativacao,
+        (SELECT COUNT(*) FROM fotos WHERE gesseiro_id = g.id) as total_fotos,
+        (SELECT COUNT(*) FROM servicos WHERE gesseiro_id = g.id) as total_servicos
+      FROM gesseiros g
+      LEFT JOIN planos p ON g.id = p.gesseiro_id
+      ORDER BY p.data_criacao DESC NULLS LAST, g.data_cadastro DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao buscar planos' });
+  }
+});
+
+app.get('/api/admin/receitas', verificarTokenAdmin, async (req, res) => {
+  try {
+    const result = await db.pool.query(`
+      SELECT 
+        p.id,
+        p.gesseiro_id,
+        g.nome as gesseiro_nome,
+        p.tipo_plano,
+        p.valor,
+        p.status,
+        p.payment_id,
+        p.data_criacao
+      FROM pagamentos p
+      JOIN gesseiros g ON p.gesseiro_id = g.id
+      ORDER BY p.data_criacao DESC
+    `);
+    
+    const totalReceita = await db.pool.query(`
+      SELECT SUM(valor) as total FROM pagamentos WHERE status = 'aprovado'
+    `);
+    
+    res.json({
+      pagamentos: result.rows,
+      total_receita: parseFloat(totalReceita.rows[0].total) || 0
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao buscar receitas' });
+  }
+});
+
+// ADMIN: Ativar plano manualmente
+app.post('/api/admin/planos/ativar', verificarTokenAdmin, async (req, res) => {
+  const { gesseiro_id, tipo_plano, dias } = req.body;
+  
+  if (!gesseiro_id || !tipo_plano) {
+    return res.status(400).json({ erro: 'gesseiro_id e tipo_plano são obrigatórios' });
+  }
+
+  try {
+    const dataExpiracao = new Date();
+    dataExpiracao.setDate(dataExpiracao.getDate() + (dias || 30));
+
+    await db.pool.query(`
+      INSERT INTO planos (gesseiro_id, tipo_plano, status, data_expiracao)
+      VALUES ($1, $2, 'ativo', $3)
+      ON CONFLICT (gesseiro_id) 
+      DO UPDATE SET tipo_plano = $2, status = 'ativo', data_expiracao = $3
+    `, [gesseiro_id, tipo_plano, dataExpiracao]);
+
+    console.log(`✅ Admin ativou plano ${tipo_plano} para gesseiro ${gesseiro_id}`);
+    res.json({ mensagem: 'Plano ativado com sucesso!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao ativar plano' });
+  }
+});
+
 app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
   const avaliacaoId = req.params.id;
 
@@ -767,6 +865,55 @@ app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
     console.log('🗑️ Avaliação deletada - ID:', avaliacaoId);
     res.json({ mensagem: 'Avaliação deletada com sucesso!' });
   });
+});
+
+// ========== REGISTRAR CLIQUES ==========
+app.post('/api/cliques/:gesseiroId', async (req, res) => {
+  const gesseiroId = parseInt(req.params.gesseiroId);
+  const { tipo } = req.body; // 'whatsapp' ou 'instagram' ou 'compartilhar'
+  const ip = req.ip || req.connection.remoteAddress;
+
+  try {
+    await db.pool.query(
+      'INSERT INTO cliques (gesseiro_id, tipo, ip_cliente) VALUES ($1, $2, $3)',
+      [gesseiroId, tipo, ip]
+    );
+    res.json({ sucesso: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao registrar clique' });
+  }
+});
+
+// Buscar estatísticas de cliques
+app.get('/api/gesseiros/:id/cliques', verificarToken, async (req, res) => {
+  const gesseiroId = parseInt(req.params.id);
+  
+  if (req.gesseiroId !== gesseiroId) {
+    return res.status(403).json({ erro: 'Sem permissão' });
+  }
+
+  try {
+    const result = await db.pool.query(`
+      SELECT 
+        tipo,
+        COUNT(*) as total,
+        MAX(data_clique) as ultimo_clique
+      FROM cliques 
+      WHERE gesseiro_id = $1 
+      GROUP BY tipo
+    `, [gesseiroId]);
+
+    const cliques = { whatsapp: 0, instagram: 0, compartilhar: 0 };
+    result.rows.forEach(row => {
+      cliques[row.tipo] = parseInt(row.total);
+    });
+
+    res.json(cliques);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao buscar cliques' });
+  }
 });
 
 // ========== ROTAS DE PLANOS ==========
