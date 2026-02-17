@@ -1,54 +1,56 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// ========== USAR SQLITE (database.js) ==========
+// Forçar uso do v2 no multer-storage-cloudinary
+
+
+// ========== USAR POSTGRESQL (database.js) ==========
 const db = require('./database.js');
 
 // ========== CONFIGURAÇÕES ==========
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'minha-chave-secreta-super-segura-2024-gesseiros';
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
+// ========== CLOUDINARY ==========
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // ========== MIDDLEWARES ==========
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(__dirname));
-app.use('/uploads', express.static('uploads'));
 
-// ========== CONFIGURAR UPLOAD ==========
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Pasta uploads criada!');
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'gesseiro-' + uniqueSuffix + path.extname(file.originalname));
+// ========== CONFIGURAR UPLOAD (CLOUDINARY) ==========
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'gesseiros',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -60,18 +62,14 @@ const upload = multer({
 // ========== MIDDLEWARE DE AUTENTICAÇÃO ==========
 function verificarToken(req, res, next) {
   const token = req.headers['authorization'];
-  
   if (!token) {
     return res.status(401).json({ erro: 'Token não fornecido' });
   }
-
   const tokenLimpo = token.replace('Bearer ', '');
-
   jwt.verify(tokenLimpo, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({ erro: 'Token inválido' });
     }
-
     req.gesseiroId = decoded.gesseiroId;
     req.email = decoded.email;
     next();
@@ -81,22 +79,17 @@ function verificarToken(req, res, next) {
 // ========== MIDDLEWARE DE AUTENTICAÇÃO ADMIN ==========
 function verificarTokenAdmin(req, res, next) {
   const token = req.headers['authorization'];
-  
   if (!token) {
     return res.status(401).json({ erro: 'Token não fornecido' });
   }
-
   const tokenLimpo = token.replace('Bearer ', '');
-
   jwt.verify(tokenLimpo, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({ erro: 'Token inválido' });
     }
-
     if (!decoded.isAdmin) {
       return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
     }
-
     req.adminId = decoded.adminId;
     req.email = decoded.email;
     next();
@@ -109,43 +102,24 @@ app.get('/', (req, res) => {
   res.send(`
     <html>
       <head>
-        <title>API Gesseiros Pro - SQLite</title>
+        <title>API Gesseiros Pro - PostgreSQL</title>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-          }
-          .card {
-            background: rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-          }
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+          .card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; backdrop-filter: blur(10px); }
           h1 { margin-bottom: 10px; }
           p { margin: 5px 0; }
-          .badge { 
-            background: #28a745; 
-            padding: 5px 10px; 
-            border-radius: 5px; 
-            font-size: 12px;
-            display: inline-block;
-            margin-top: 10px;
-          }
+          .badge { background: #28a745; padding: 5px 10px; border-radius: 5px; font-size: 12px; display: inline-block; margin-top: 10px; }
         </style>
       </head>
       <body>
         <div class="card">
           <h1>🏗️ API Gesseiros Pro</h1>
-          <p>✅ Servidor rodando com SQLite!</p>
-          <span class="badge">TUDO CORRIGIDO ✅</span>
+          <p>✅ Servidor rodando com PostgreSQL + Cloudinary!</p>
+          <span class="badge">PRODUÇÃO PRONTA ✅</span>
           <hr>
-          <h3>🆕 Novidades:</h3>
-          <p>✅ Erro 500 CORRIGIDO</p>
-          <p>✅ Upload de fotos funcionando</p>
+          <h3>✅ Funcionalidades:</h3>
+          <p>✅ Banco de dados PostgreSQL (dados persistentes)</p>
+          <p>✅ Fotos no Cloudinary (imagens persistentes)</p>
           <p>✅ Sistema de avaliações ⭐</p>
           <p>✅ Painel de administrador 🔐</p>
           <p>✅ Cadastro e login estáveis</p>
@@ -156,17 +130,43 @@ app.get('/', (req, res) => {
           <p>POST /api/login</p>
           <p>POST /api/gesseiros/:id/fotos</p>
           <p>POST /api/gesseiros/:id/servicos</p>
-          <p>POST /api/avaliacoes (NOVO)</p>
-          <p>POST /api/admin/login (NOVO)</p>
+          <p>POST /api/avaliacoes</p>
+          <p>POST /api/admin/login</p>
         </div>
       </body>
     </html>
   `);
 });
 
-// ========== CADASTRO COMPLETO (CORRIGIDO) ==========
+// ========== GEOCODING ==========
+app.post('/api/geocode', async (req, res) => {
+  const { endereco } = req.body;
+  if (!endereco) {
+    return res.status(400).json({ erro: 'Endereço é obrigatório' });
+  }
+  try {
+    const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+      params: { address: endereco, key: GOOGLE_MAPS_API_KEY }
+    });
+    if (response.data.results && response.data.results.length > 0) {
+      const location = response.data.results[0].geometry.location;
+      res.json({
+        latitude: location.lat,
+        longitude: location.lng,
+        endereco_formatado: response.data.results[0].formatted_address
+      });
+    } else {
+      res.status(404).json({ erro: 'Endereço não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro no geocoding:', error);
+    res.status(500).json({ erro: 'Erro ao buscar coordenadas' });
+  }
+});
+
+// ========== CADASTRO COMPLETO ==========
 app.post('/api/cadastro-completo', async (req, res) => {
-  const { nome, cidade, telefone, email, instagram, descricao, senha } = req.body;
+  const { nome, cidade, telefone, email, instagram, descricao, senha, endereco, latitude, longitude } = req.body;
 
   console.log('=== CADASTRO COMPLETO ===');
   console.log('Nome:', nome);
@@ -177,20 +177,17 @@ app.post('/api/cadastro-completo', async (req, res) => {
   }
 
   try {
-    // Verificar se email já existe
     db.buscarUsuarioPorEmail(email, async (err, usuarioExistente) => {
       if (err) {
         console.error('Erro ao verificar email:', err);
         return res.status(500).json({ erro: 'Erro ao verificar email' });
       }
-
       if (usuarioExistente) {
         return res.status(400).json({ erro: 'Este email já está cadastrado' });
       }
 
-      // Criar gesseiro
       db.inserirGesseiro(
-        { nome, cidade, telefone, email, instagram: instagram || '', descricao },
+        { nome, cidade, telefone, email, instagram: instagram || '', descricao, endereco, latitude, longitude },
         async (err, gesseiro) => {
           if (err) {
             console.error('Erro ao criar gesseiro:', err);
@@ -200,10 +197,8 @@ app.post('/api/cadastro-completo', async (req, res) => {
           const gesseiroId = gesseiro.id;
           console.log('✅ Gesseiro criado com ID:', gesseiroId);
 
-          // Hash da senha
           const senhaHash = await bcrypt.hash(senha, 10);
 
-          // Criar usuário
           db.inserirUsuario(email, senhaHash, gesseiroId, (err) => {
             if (err) {
               console.error('Erro ao criar usuário:', err);
@@ -212,7 +207,6 @@ app.post('/api/cadastro-completo', async (req, res) => {
 
             console.log('✅ Usuário criado!');
 
-            // Gerar token
             const token = jwt.sign(
               { gesseiroId: gesseiroId, email: email },
               JWT_SECRET,
@@ -235,7 +229,7 @@ app.post('/api/cadastro-completo', async (req, res) => {
   }
 });
 
-// ========== LOGIN (CORRIGIDO) ==========
+// ========== LOGIN ==========
 app.post('/api/login', (req, res) => {
   const { email, senha } = req.body;
 
@@ -251,13 +245,11 @@ app.post('/api/login', (req, res) => {
       console.error('Erro ao buscar usuário:', err);
       return res.status(500).json({ erro: 'Erro ao processar login' });
     }
-
     if (!usuario) {
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
 
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
-
     if (!senhaCorreta) {
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
@@ -285,12 +277,11 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// ========== LOGIN ADMIN 🔐 ==========
+// ========== LOGIN ADMIN ==========
 app.post('/api/admin/login', (req, res) => {
   const { email, senha } = req.body;
 
   console.log('=== LOGIN ADMIN ===');
-  console.log('Email:', email);
 
   if (!email || !senha) {
     return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
@@ -301,13 +292,11 @@ app.post('/api/admin/login', (req, res) => {
       console.error('Erro ao buscar admin:', err);
       return res.status(500).json({ erro: 'Erro ao processar login' });
     }
-
     if (!admin) {
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
 
     const senhaCorreta = await bcrypt.compare(senha, admin.senha);
-
     if (!senhaCorreta) {
       return res.status(401).json({ erro: 'Email ou senha incorretos' });
     }
@@ -337,29 +326,16 @@ app.get('/api/gesseiros', (req, res) => {
       return res.status(500).json({ erro: 'Erro ao buscar gesseiros' });
     }
 
-    // Para cada gesseiro, buscar fotos, serviços e avaliações
     const promises = gesseiros.map(gesseiro => {
       return new Promise((resolve) => {
         db.buscarFotos(gesseiro.id, (err, fotos) => {
-          if (err) {
-            gesseiro.fotos = [];
-          } else {
-            gesseiro.fotos = fotos;
-          }
+          gesseiro.fotos = err ? [] : fotos;
 
           db.buscarServicos(gesseiro.id, (err, servicos) => {
-            if (err) {
-              gesseiro.servicos = [];
-            } else {
-              gesseiro.servicos = servicos;
-            }
+            gesseiro.servicos = err ? [] : servicos;
 
             db.buscarAvaliacoes(gesseiro.id, (err, avaliacoes) => {
-              if (err) {
-                gesseiro.avaliacoes = [];
-              } else {
-                gesseiro.avaliacoes = avaliacoes;
-              }
+              gesseiro.avaliacoes = err ? [] : avaliacoes;
               resolve(gesseiro);
             });
           });
@@ -382,11 +358,9 @@ app.get('/api/gesseiros/:id', (req, res) => {
       console.error('Erro:', err);
       return res.status(500).json({ erro: 'Erro ao buscar gesseiro' });
     }
-
     if (!gesseiro) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
-
     res.json(gesseiro);
   });
 });
@@ -394,26 +368,23 @@ app.get('/api/gesseiros/:id', (req, res) => {
 // ========== ATUALIZAR PERFIL ==========
 app.put('/api/gesseiros/:id', verificarToken, (req, res) => {
   const id = parseInt(req.params.id);
-  const { nome, cidade, telefone, email, instagram, descricao } = req.body;
+  const { nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude } = req.body;
 
   if (req.gesseiroId !== id) {
     return res.status(403).json({ erro: 'Você não tem permissão para editar este perfil!' });
   }
-
   if (!nome || !cidade || !telefone) {
     return res.status(400).json({ erro: 'Nome, cidade e telefone são obrigatórios' });
   }
 
-  db.atualizarGesseiro(id, { nome, cidade, telefone, email, instagram, descricao }, (err, result) => {
+  db.atualizarGesseiro(id, { nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude }, (err, result) => {
     if (err) {
       console.error('Erro ao atualizar:', err);
       return res.status(500).json({ erro: 'Erro ao atualizar' });
     }
-
     if (result.changes === 0) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
-
     console.log('✅ Gesseiro atualizado:', nome);
     res.json({ mensagem: 'Gesseiro atualizado com sucesso!', id });
   });
@@ -432,11 +403,9 @@ app.delete('/api/gesseiros/:id', verificarToken, (req, res) => {
       console.error('Erro ao deletar:', err);
       return res.status(500).json({ erro: 'Erro ao deletar' });
     }
-
     if (result.changes === 0) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
-
     console.log('🗑️ Gesseiro deletado - ID:', id);
     res.json({ mensagem: 'Gesseiro deletado com sucesso!' });
   });
@@ -451,47 +420,37 @@ app.get('/api/gesseiros/:id/fotos', (req, res) => {
       console.error('Erro ao buscar fotos:', err);
       return res.status(500).json({ erro: 'Erro ao buscar fotos' });
     }
-
     res.json(fotos);
   });
 });
 
-// ========== UPLOAD DE FOTO (CORRIGIDO) ==========
+// ========== UPLOAD DE FOTO (CLOUDINARY) ==========
 app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), (req, res) => {
   const gesseiroId = parseInt(req.params.id);
   const descricao = req.body.descricao || '';
 
   console.log('=== UPLOAD DE FOTO ===');
   console.log('Gesseiro ID:', gesseiroId);
-  console.log('Token Gesseiro ID:', req.gesseiroId);
   console.log('Arquivo:', req.file ? req.file.filename : 'NENHUM');
   console.log('Descrição:', descricao);
 
   if (req.gesseiroId !== gesseiroId) {
-    console.log('❌ Permissão negada');
     return res.status(403).json({ erro: 'Você não tem permissão para adicionar fotos aqui!' });
   }
-
   if (!req.file) {
-    console.log('❌ Nenhum arquivo enviado');
     return res.status(400).json({ erro: 'Nenhuma foto foi enviada' });
   }
 
-  const fotoUrl = `uploads/${req.file.filename}`;
-  console.log('URL da foto:', fotoUrl);
+  // URL pública do Cloudinary
+  const fotoUrl = req.file.path;
 
   db.adicionarFoto(gesseiroId, fotoUrl, descricao, (err, foto) => {
     if (err) {
       console.error('❌ Erro ao salvar foto:', err);
       return res.status(500).json({ erro: 'Erro ao salvar foto' });
     }
-
-    console.log('✅ Foto salva:', foto);
-
-    res.json({
-      mensagem: 'Foto adicionada com sucesso!',
-      foto: foto
-    });
+    console.log('✅ Foto salva no Cloudinary:', fotoUrl);
+    res.json({ mensagem: 'Foto adicionada com sucesso!', foto: foto });
   });
 });
 
@@ -504,24 +463,22 @@ app.delete('/api/gesseiros/:gesseiroId/fotos/:fotoId', verificarToken, (req, res
     return res.status(403).json({ erro: 'Você não tem permissão para deletar esta foto!' });
   }
 
-  // Buscar foto para pegar o caminho do arquivo
-  db.db.get('SELECT * FROM fotos WHERE id = ? AND gesseiro_id = ?', [fotoId, gesseiroId], (err, foto) => {
+  db.buscarFotoPorId(fotoId, (err, foto) => {
     if (err || !foto) {
       return res.status(404).json({ erro: 'Foto não encontrada' });
     }
 
-    const caminhoArquivo = path.join(__dirname, foto.url_foto);
-    
-    if (fs.existsSync(caminhoArquivo)) {
-      fs.unlinkSync(caminhoArquivo);
-    }
+    // Deletar do Cloudinary
+    const publicId = foto.url_foto.split('/').slice(-2).join('/').split('.')[0];
+    cloudinary.uploader.destroy(publicId, (cloudErr) => {
+      if (cloudErr) console.error('Aviso: erro ao deletar do Cloudinary:', cloudErr);
+    });
 
     db.deletarFoto(fotoId, (err, result) => {
       if (err) {
         console.error('Erro ao deletar foto:', err);
         return res.status(500).json({ erro: 'Erro ao deletar foto' });
       }
-
       console.log('🗑️ Foto deletada - ID:', fotoId);
       res.json({ mensagem: 'Foto deletada com sucesso!' });
     });
@@ -536,32 +493,19 @@ app.post('/api/gesseiros/:id/servicos', verificarToken, (req, res) => {
   if (req.gesseiroId !== gesseiroId) {
     return res.status(403).json({ erro: 'Sem permissão' });
   }
-
   if (!nome_servico || !preco_com_material || !preco_sem_material) {
     return res.status(400).json({ erro: 'Nome do serviço e preços são obrigatórios' });
   }
 
-  const dados = {
-    gesseiro_id: gesseiroId,
-    nome_servico,
-    preco_com_material,
-    preco_sem_material,
-    unidade: unidade || 'm²',
-    distancia_maxima: distancia_maxima || 50
-  };
+  const dados = { gesseiro_id: gesseiroId, nome_servico, preco_com_material, preco_sem_material, unidade: unidade || 'm²', distancia_maxima: distancia_maxima || 50 };
 
   db.adicionarServico(dados, (err, servico) => {
     if (err) {
       console.error('Erro ao adicionar serviço:', err);
       return res.status(500).json({ erro: 'Erro ao adicionar serviço' });
     }
-
     console.log('💰 Serviço adicionado:', nome_servico);
-
-    res.json({
-      mensagem: 'Serviço adicionado com sucesso!',
-      servico: servico
-    });
+    res.json({ mensagem: 'Serviço adicionado com sucesso!', servico: servico });
   });
 });
 
@@ -574,7 +518,6 @@ app.get('/api/gesseiros/:id/servicos', (req, res) => {
       console.error('Erro ao buscar serviços:', err);
       return res.status(500).json({ erro: 'Erro ao buscar serviços' });
     }
-
     res.json(servicos);
   });
 });
@@ -593,28 +536,23 @@ app.delete('/api/gesseiros/:gesseiroId/servicos/:servicoId', verificarToken, (re
       console.error('Erro ao deletar serviço:', err);
       return res.status(500).json({ erro: 'Erro ao deletar serviço' });
     }
-
     if (result.changes === 0) {
       return res.status(404).json({ erro: 'Serviço não encontrado' });
     }
-
     console.log('🗑️ Serviço deletado - ID:', servicoId);
     res.json({ mensagem: 'Serviço deletado com sucesso!' });
   });
 });
 
-// ========== ⭐ ADICIONAR AVALIAÇÃO (PÚBLICO - SEM TOKEN) ==========
+// ========== ADICIONAR AVALIAÇÃO ==========
 app.post('/api/avaliacoes', (req, res) => {
   const { gesseiro_id, nome_avaliador, email_avaliador, estrelas, comentario } = req.body;
 
   console.log('=== NOVA AVALIAÇÃO ===');
-  console.log('Gesseiro ID:', gesseiro_id);
-  console.log('Estrelas:', estrelas);
 
   if (!gesseiro_id || !estrelas) {
     return res.status(400).json({ erro: 'Gesseiro e estrelas são obrigatórios' });
   }
-
   if (estrelas < 1 || estrelas > 5) {
     return res.status(400).json({ erro: 'Estrelas devem ser entre 1 e 5' });
   }
@@ -632,17 +570,12 @@ app.post('/api/avaliacoes', (req, res) => {
       console.error('Erro ao adicionar avaliação:', err);
       return res.status(500).json({ erro: 'Erro ao adicionar avaliação' });
     }
-
     console.log('✅ Avaliação adicionada!');
-
-    res.json({
-      mensagem: 'Avaliação enviada com sucesso!',
-      avaliacao: avaliacao
-    });
+    res.json({ mensagem: 'Avaliação enviada com sucesso!', avaliacao: avaliacao });
   });
 });
 
-// ========== LISTAR AVALIAÇÕES DE UM GESSEIRO ==========
+// ========== LISTAR AVALIAÇÕES ==========
 app.get('/api/gesseiros/:id/avaliacoes', (req, res) => {
   const gesseiroId = req.params.id;
 
@@ -651,45 +584,38 @@ app.get('/api/gesseiros/:id/avaliacoes', (req, res) => {
       console.error('Erro ao buscar avaliações:', err);
       return res.status(500).json({ erro: 'Erro ao buscar avaliações' });
     }
-
     res.json(avaliacoes);
   });
 });
 
-// ========== 🔐 ROTAS ADMIN ==========
+// ========== ROTAS ADMIN ==========
 
-// Listar todos usuários (admin)
 app.get('/api/admin/usuarios', verificarTokenAdmin, (req, res) => {
   db.listarTodosUsuarios((err, usuarios) => {
     if (err) {
       console.error('Erro ao listar usuários:', err);
       return res.status(500).json({ erro: 'Erro ao listar usuários' });
     }
-
     res.json(usuarios);
   });
 });
 
-// Deletar usuário (admin)
 app.delete('/api/admin/usuarios/:id', verificarTokenAdmin, (req, res) => {
   const usuarioId = req.params.id;
 
-  db.db.run('DELETE FROM usuarios WHERE id = ?', [usuarioId], function(err) {
+  db.deletarUsuarioPorId(usuarioId, (err, result) => {
     if (err) {
       console.error('Erro ao deletar usuário:', err);
       return res.status(500).json({ erro: 'Erro ao deletar usuário' });
     }
-
-    if (this.changes === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ erro: 'Usuário não encontrado' });
     }
-
     console.log('🗑️ Usuário deletado - ID:', usuarioId);
     res.json({ mensagem: 'Usuário deletado com sucesso!' });
   });
 });
 
-// Deletar gesseiro (admin)
 app.delete('/api/admin/gesseiros/:id', verificarTokenAdmin, (req, res) => {
   const gesseiroId = req.params.id;
 
@@ -698,29 +624,24 @@ app.delete('/api/admin/gesseiros/:id', verificarTokenAdmin, (req, res) => {
       console.error('Erro ao deletar gesseiro:', err);
       return res.status(500).json({ erro: 'Erro ao deletar gesseiro' });
     }
-
     if (result.changes === 0) {
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
-
     console.log('🗑️ Gesseiro deletado pelo admin - ID:', gesseiroId);
     res.json({ mensagem: 'Gesseiro deletado com sucesso!' });
   });
 });
 
-// Estatísticas (admin)
 app.get('/api/admin/estatisticas', verificarTokenAdmin, (req, res) => {
   db.obterEstatisticas((err, stats) => {
     if (err) {
       console.error('Erro ao buscar estatísticas:', err);
       return res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
     }
-
     res.json(stats);
   });
 });
 
-// Deletar avaliação (admin)
 app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
   const avaliacaoId = req.params.id;
 
@@ -729,11 +650,9 @@ app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
       console.error('Erro ao deletar avaliação:', err);
       return res.status(500).json({ erro: 'Erro ao deletar avaliação' });
     }
-
     if (result.changes === 0) {
       return res.status(404).json({ erro: 'Avaliação não encontrada' });
     }
-
     console.log('🗑️ Avaliação deletada - ID:', avaliacaoId);
     res.json({ mensagem: 'Avaliação deletada com sucesso!' });
   });
@@ -742,22 +661,11 @@ app.delete('/api/admin/avaliacoes/:id', verificarTokenAdmin, (req, res) => {
 // ========== INICIAR SERVIDOR ==========
 app.listen(PORT, () => {
   console.log('\n=================================');
-  console.log('🚀 GESSEIROS PRO - VERSÃO CORRIGIDA');
+  console.log('🚀 GESSEIROS PRO - PRODUÇÃO');
   console.log('=================================');
   console.log(`📍 URL: http://localhost:${PORT}`);
-  console.log(`🗄️ Banco: SQLite (gesseiros.db)`);
-  console.log(`📸 Uploads: ./uploads/`);
+  console.log(`🗄️  Banco: PostgreSQL (Render)`);
+  console.log(`📸 Fotos: Cloudinary`);
   console.log(`🔐 JWT: Ativado`);
   console.log('=================================');
-  console.log('✅ FUNCIONALIDADES:');
-  console.log('   - ✅ Cadastro e Login');
-  console.log('   - ✅ Upload de fotos COM descrição');
-  console.log('   - ✅ Sistema de preços/serviços');
-  console.log('   - ⭐ Sistema de avaliações');
-  console.log('   - 🔐 Painel de administrador');
-  console.log('=================================');
-  console.log('🔑 CREDENCIAIS ADMIN:');
-  console.log('   Email: GesseiroAdmin');
-  console.log('   Senha: Admin@2025');
-  console.log('=================================\n');
 });

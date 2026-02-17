@@ -191,12 +191,12 @@
             <div class="row">
                 <div class="form-group">
                     <label for="cidade">📍 Cidade</label>
-                    <input type="text" id="cidade" name="cidade" autocomplete="address-level2" required placeholder="São Paulo">
+                    <input type="text" id="cidade" name="cidade" autocomplete="address-level2" required placeholder="Fortaleza">
                 </div>
 
                 <div class="form-group">
                     <label for="telefone">📱 Telefone/WhatsApp</label>
-                    <input type="tel" id="telefone" name="telefone" autocomplete="tel" required placeholder="(11) 99999-9999">
+                    <input type="tel" id="telefone" name="telefone" autocomplete="tel" required placeholder="(85) 99999-9999">
                 </div>
             </div>
 
@@ -212,9 +212,23 @@
             </div>
 
             <div class="form-group">
-                <label for="descricao">📝 Descrição Profissional</label>
-                <textarea id="descricao" name="descricao" required placeholder="Fale sobre sua experiência, especialidades e diferenciais..."></textarea>
-                <div class="help-text">Conte aos clientes por que escolher você</div>
+                <label for="descricao">💬 Descrição / Sobre Você</label>
+                <textarea 
+                    id="descricao" 
+                    required 
+                    placeholder="Conte sobre sua experiência, especialidades, tempo de atuação..."
+                    rows="4"
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="endereco">📍 Endereço Completo (opcional)</label>
+                <input 
+                    type="text" 
+                    id="endereco" 
+                    placeholder="Rua, Número, Bairro, Cidade - CE"
+                >
+                <small style="color: #666; font-size: 12px;">Ex: Av. Beira Mar, 1000, Meireles, Fortaleza - CE</small>
             </div>
 
             <div class="form-group">
@@ -273,11 +287,30 @@
                 email: document.getElementById('email').value,
                 instagram: document.getElementById('instagram').value,
                 descricao: document.getElementById('descricao').value,
-                senha: senha
+                senha: senha,
+                endereco: document.getElementById('endereco').value
             };
 
+            // Buscar coordenadas do endereço
+            if (dados.endereco) {
+                try {
+                    const geoResponse = await fetch('/api/geocode', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endereco: dados.endereco })
+                    });
+                    
+                    if (geoResponse.ok) {
+                        const geoData = await geoResponse.json();
+                        dados.latitude = geoData.latitude;
+                        dados.longitude = geoData.longitude;
+                    }
+                } catch (error) {
+                    console.log('Não foi possível buscar coordenadas');
+                }
+            }
+
             try {
-                // CORRIGIDO: endpoint correto
                 const response = await fetch('/api/cadastro-completo', {
                     method: 'POST',
                     headers: {
@@ -289,7 +322,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Salvar dados no localStorage
                     if (data.token) localStorage.setItem('token', data.token);
                     if (data.gesseiroId) localStorage.setItem('gesseiroId', data.gesseiroId);
                     if (data.nome) localStorage.setItem('nomeGesseiro', data.nome);

@@ -1,0 +1,16 @@
+# ========== BANCO DE DADOS ==========
+DATABASE_URL=postgresql://gesseiros_db_user:Uir6YnLN0chmVdqNxAM2gvtuC00CrbRK@dpg-d69usfn5r7bs73feuidg-a.virginia-postgres.render.com/gesseiros_db
+
+# ========== CLOUDINARY (FOTOS) ==========
+CLOUDINARY_CLOUD_NAME=dhjj8nksj
+CLOUDINARY_API_KEY=216697615735697
+CLOUDINARY_API_SECRET=IzAFawZenNnUk36CDNG5xF4aeJI
+
+# ========== JWT ==========
+JWT_SECRET=minha-chave-secreta-super-segura-2024-gesseiros
+
+# ========== GOOGLE MAPS ==========
+GOOGLE_MAPS_API_KEY=AIzaSyD_pMBr9EehGOeOyuVdH_peUfWVfDkCSKw
+
+# ========== SERVIDOR ==========
+PORT=3000

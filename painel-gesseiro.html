@@ -503,7 +503,7 @@
 
     <script>
         const token = localStorage.getItem('token');
-        const gesseiroId = localStorage.getItem('gesseiroId');
+        const gesseiroId = parseInt(localStorage.getItem('gesseiroId'));
         const nomeGesseiro = localStorage.getItem('nomeGesseiro');
 
         if (!token || !gesseiroId) {
@@ -736,7 +736,7 @@
                     const div = document.createElement('div');
                     div.className = 'foto-item';
                     div.innerHTML = `
-                        <img src="/${foto.url}" alt="Trabalho" onclick="abrirModal('/${foto.url}', '${foto.descricao || ''}')">
+                        <img src="${foto.url_foto}" alt="Trabalho" onclick="abrirModal('${foto.url_foto}', '${foto.descricao || ''}')">
                         <div class="foto-descricao">${foto.descricao || 'Sem descrição'}</div>
                         <button class="btn-delete" onclick="event.stopPropagation(); deletarFoto(${foto.id})">🗑️</button>
                     `;

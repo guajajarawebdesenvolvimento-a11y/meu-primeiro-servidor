@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_pMBr9EehGOeOyuVdH_peUfWVfDkCSKw&loading=async"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SeuGesseiro - Encontre Gesseiros em Fortaleza e Região</title>
@@ -133,6 +134,12 @@
         .card-precos {
             background: #f8f9fa;
             padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .card-mapa {
+            width: 100%;
+            height: 200px;
             border-radius: 10px;
             margin: 15px 0;
         }
@@ -453,7 +460,7 @@ function navegarFoto(direcao) {
 
 function mostrarFotoAtual() {
     const foto = fotosAtual[fotoAtualIndex];
-    document.getElementById('galeriaImagem').src = '/' + foto.url_foto;
+    document.getElementById('galeriaImagem').src = foto.url_foto;
     document.getElementById('galeriaTexto').textContent = foto.descricao || 'Sem descrição';
     document.getElementById('galeriaContador').textContent = `Foto ${fotoAtualIndex + 1} de ${fotosAtual.length}`;
 }
@@ -614,8 +621,30 @@ function criarCard(gesseiro) {
     let fotosHTML = '';
     if (gesseiro.fotos && gesseiro.fotos.length > 0) {
         fotosHTML = `<div class="card-fotos">${gesseiro.fotos.slice(0,3).map((foto, index) => 
-            `<img src="/${foto.url_foto}" alt="Trabalho" onclick="event.stopPropagation(); abrirGaleria(${JSON.stringify(gesseiro.fotos).replace(/"/g, '&quot;')}, ${index})">`
+            `<img src="${foto.url_foto}" alt="Trabalho" onclick="event.stopPropagation(); abrirGaleria(${JSON.stringify(gesseiro.fotos).replace(/"/g, '&quot;')}, ${index})">`
         ).join('')}</div>`;
+    }
+
+    // Mapa
+    let mapaHTML = '';
+    if (gesseiro.latitude && gesseiro.longitude) {
+        const mapaId = `mapa-${gesseiro.id}`;
+        mapaHTML = `<div class="card-mapa" id="${mapaId}"></div>`;
+        
+        setTimeout(() => {
+            const mapDiv = document.getElementById(mapaId);
+            if (mapDiv && typeof google !== 'undefined') {
+                const map = new google.maps.Map(mapDiv, {
+                    center: { lat: gesseiro.latitude, lng: gesseiro.longitude },
+                    zoom: 15
+                });
+                new google.maps.Marker({
+                    position: { lat: gesseiro.latitude, lng: gesseiro.longitude },
+                    map: map,
+                    title: gesseiro.nome
+                });
+            }
+        }, 100);
     }
 
     card.innerHTML = `
@@ -630,6 +659,7 @@ function criarCard(gesseiro) {
             ${avaliacoesHTML}
             ${precosHTML}
             ${fotosHTML}
+            ${mapaHTML}
             <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation()">💬 WhatsApp</a>
             <button class="btn-avaliar" onclick="event.stopPropagation(); abrirModalAvaliacao(${gesseiro.id}, '${gesseiro.nome}')">⭐ Avaliar</button>
         </div>
