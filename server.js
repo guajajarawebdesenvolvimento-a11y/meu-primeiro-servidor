@@ -196,7 +196,7 @@ app.post('/api/geocode-reverso', async (req, res) => {
 });
 
 // ========== FOTO DE PERFIL ==========
-app.post('/api/gesseiros/:id/foto-perfil', autenticar, upload.single('foto'), async (req, res) => {
+app.post('/api/gesseiros/:id/foto-perfil', verificarToken, upload.single('foto'), async (req, res) => {
   const gesseiroId = parseInt(req.params.id);
   if (req.usuario.gesseiroId !== gesseiroId) return res.status(403).json({ erro: 'Sem permissão' });
   if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada' });
@@ -225,7 +225,7 @@ app.post('/api/gesseiros/:id/foto-perfil', autenticar, upload.single('foto'), as
 });
 
 // ========== ALTERAR EMAIL ==========
-app.put('/api/usuarios/alterar-email', autenticar, async (req, res) => {
+app.put('/api/usuarios/alterar-email', verificarToken, async (req, res) => {
   const { novoEmail, senha } = req.body;
   if (!novoEmail || !senha) return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
 
