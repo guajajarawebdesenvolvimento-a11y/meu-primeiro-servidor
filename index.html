@@ -4,162 +4,504 @@
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_pMBr9EehGOeOyuVdH_peUfWVfDkCSKw&loading=async"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeuGesseiro - Encontre Gesseiros em Fortaleza e Região</title>
+
+    <!-- SEO -->
+    <title>Gesseiro em Grajaú MA | Encontre Gesseiros em Grajaú e Região</title>
+    <meta name="description" content="Encontre gesseiros profissionais em Grajaú - MA. Compare preços, veja avaliações e contrate o melhor gesseiro para reboco, forro, sanca e gesso decorativo.">
+    <meta name="keywords" content="gesseiro Grajaú, gesseiro Grajaú MA, serviço de gesso Grajaú, reboco de gesso, forro de gesso, sanca Grajaú, gesso decorativo Grajaú, gesseiro Maranhão">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Gesseiro em Grajaú MA | SeuGesseiro">
+    <meta property="og:description" content="Encontre o melhor gesseiro em Grajaú - MA. Compare preços, veja avaliações e contrate agora!">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"SeuGesseiro Grajaú","description":"Plataforma para encontrar gesseiros em Grajaú - MA","areaServed":{"@type":"City","name":"Grajaú","addressRegion":"MA"}}</script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+        :root {
+            --primary: #1a1a2e;
+            --accent: #e94560;
+            --accent2: #0f3460;
+            --green: #00b09b;
+            --green2: #96c93d;
+            --gold: #f7c948;
+            --light: #f8f9ff;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-hover: 0 12px 40px rgba(0,0,0,0.15);
+            --radius: 16px;
         }
 
-        /* HERO */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* ===== HERO ===== */
         .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 20px 60px;
+            background: var(--primary);
+            position: relative;
+            overflow: hidden;
+            padding: 70px 20px 80px;
             text-align: center;
         }
-        .hero h1 { font-size: 42px; margin-bottom: 20px; }
-        .hero p { font-size: 20px; margin-bottom: 30px; }
-        .hero-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .btn-primary, .btn-secondary {
-            padding: 15px 35px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            border: none;
-            text-decoration: none;
-            display: inline-block;
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(233,69,96,0.2) 0%, transparent 70%);
+            pointer-events: none;
         }
-        .btn-primary { background: #ffc107; color: #333; }
-        .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
 
-        /* CONTAINER */
-        .container { max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
-        .section-title { text-align: center; font-size: 36px; margin-bottom: 15px; }
-        .section-subtitle { text-align: center; color: #666; margin-bottom: 50px; font-size: 18px; }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(15,52,96,0.5) 0%, transparent 70%);
+            pointer-events: none;
+        }
 
-        /* FILTROS */
-        .filtros {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            margin-bottom: 40px;
+        .hero-badge {
+            display: inline-block;
+            background: rgba(233,69,96,0.15);
+            border: 1px solid rgba(233,69,96,0.4);
+            color: #ff6b81;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 36px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-hero-primary {
+            background: var(--accent);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(233,69,96,0.4);
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(233,69,96,0.5);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* STATS BAR */
+        .stats-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
             flex-wrap: wrap;
         }
-        .filtros input, .filtros select {
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            flex: 1;
-            min-width: 200px;
-        }
 
-        /* CARDS */
-        .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: transform 0.3s;
-        }
-        .card:hover { transform: translateY(-5px); }
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .stat-item {
             text-align: center;
         }
-        .card-header h3 { font-size: 22px; margin-bottom: 5px; }
-        .card-body { padding: 20px; }
-        .card-info { margin-bottom: 10px; font-size: 14px; color: #666; }
+
+        .stat-item strong {
+            display: block;
+            font-family: 'Sora', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .stat-item span {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .section-header h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        /* ===== FILTROS ===== */
+        .filtros {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            border: 1px solid var(--border);
+        }
+
+        .filtro-input {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            transition: border-color 0.2s;
+            background: var(--light);
+        }
+
+        .filtro-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+        }
+
+        /* ===== CARDS ===== */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent2) 100%);
+            padding: 24px 20px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .card-avatar {
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Sora', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .card-header h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .card-header .cidade {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .card-info strong {
+            color: var(--text);
+        }
+
+        .card-descricao {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--light);
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* AVALIAÇÕES */
+        .avaliacoes-resumo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .estrelas-display { font-size: 16px; }
+
+        .avaliacao-info {
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        /* PREÇOS */
+        .card-precos {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .card-precos h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .servico-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .servico-row:last-child { border-bottom: none; }
+
+        .servico-nome { font-weight: 600; color: var(--text); }
+
+        .servico-precos {
+            display: flex;
+            gap: 6px;
+        }
+
+        .preco-tag {
+            background: var(--accent2);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .preco-tag.sem {
+            background: var(--green);
+        }
+
+        /* FOTOS */
         .card-fotos {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-            margin: 15px 0;
-        }
-        .card-fotos img {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        .card-fotos img:hover { transform: scale(1.05); }
-        .btn-whatsapp {
-            width: 100%;
-            padding: 12px;
-            background: #25D366;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .btn-avaliar {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .avaliacoes-resumo {
-            background: #fef3c7;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-            font-size: 14px;
-            color: #92400e;
-            font-weight: 600;
-        }
-        .card-precos {
-            background: #f8f9fa;
-            padding: 15px;
+            gap: 6px;
+            margin-bottom: 16px;
             border-radius: 10px;
-            margin: 15px 0;
-        }
-        .card-mapa {
-            width: 100%;
-            height: 200px;
-            border-radius: 10px;
-            margin: 15px 0;
+            overflow: hidden;
         }
 
-        /* === GALERIA DE FOTOS PROFISSIONAL === */
+        .card-fotos img {
+            width: 100%;
+            height: 90px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .card-fotos img:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        /* MAPA */
+        .card-mapa {
+            width: 100%;
+            height: 160px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        /* BOTÕES */
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+        }
+
+        .btn-whatsapp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37,211,102,0.4);
+        }
+
+        .btn-avaliar {
+            background: white;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .btn-avaliar:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ===== MODAL GALERIA ===== */
         .modal-galeria {
             display: none;
             position: fixed;
             z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .galeria-container {
@@ -176,176 +518,281 @@
             max-height: 70vh;
             object-fit: contain;
             border-radius: 10px;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
         }
 
         .galeria-legenda {
             background: white;
-            padding: 20px 30px;
+            padding: 16px 24px;
             border-radius: 10px;
-            margin-top: 20px;
-            max-width: 600px;
+            margin-top: 16px;
+            max-width: 500px;
             text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
-        .galeria-legenda h3 {
-            font-size: 16px;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .galeria-legenda p {
-            color: #333;
-            font-size: 15px;
-            line-height: 1.6;
-        }
+        .galeria-legenda p { color: #333; font-size: 14px; }
 
         .galeria-contador {
-            color: white;
-            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
             margin-top: 10px;
-            opacity: 0.8;
         }
 
         .galeria-close {
             position: absolute;
-            top: 20px;
-            right: 30px;
+            top: 20px; right: 30px;
             color: white;
-            font-size: 40px;
-            font-weight: bold;
+            font-size: 36px;
             cursor: pointer;
             z-index: 10000;
-            transition: transform 0.3s;
-        }
-
-        .galeria-close:hover {
-            transform: scale(1.2);
         }
 
         .galeria-seta {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             color: white;
-            font-size: 50px;
-            padding: 20px;
+            font-size: 40px;
+            padding: 16px;
             cursor: pointer;
-            user-select: none;
             border-radius: 10px;
-            transition: all 0.3s;
             z-index: 10000;
+            transition: background 0.3s;
         }
 
-        .galeria-seta:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-50%) scale(1.1);
-        }
-
+        .galeria-seta:hover { background: rgba(255,255,255,0.3); }
         .galeria-seta-esq { left: 20px; }
         .galeria-seta-dir { right: 20px; }
 
-        /* Modal de Avaliação */
+        /* ===== MODAL AVALIAÇÃO ===== */
         .modal-avaliacao {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(5px);
         }
+
         .modal-avaliacao-content {
             background: white;
             margin: 5% auto;
-            padding: 30px;
+            padding: 32px;
             border-radius: 20px;
-            max-width: 500px;
+            max-width: 480px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
+
+        .modal-avaliacao-content h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 22px;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
         .estrelas-input {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             font-size: 40px;
             margin: 20px 0;
             cursor: pointer;
         }
+
         .estrelas-input span { transition: transform 0.2s; user-select: none; }
-        .estrelas-input span:hover,
-        .estrelas-input span.selected { transform: scale(1.2); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: inherit;
-        }
-        .btn-enviar-avaliacao {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
+        .estrelas-input span:hover, .estrelas-input span.selected { transform: scale(1.2); }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
             font-weight: 600;
-            cursor: pointer;
-        }
-        .validacao-info {
-            background: #dbeafe;
-            border: 2px solid #3b82f6;
-            color: #1e40af;
-            padding: 12px;
-            border-radius: 8px;
             font-size: 13px;
-            margin-bottom: 15px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-enviar-avaliacao {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .btn-enviar-avaliacao:hover { background: #c73652; }
+
+        .validacao-info {
+            background: #dbeafe;
+            border: 1.5px solid #93c5fd;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .btn-fechar-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+        }
+
+        /* ===== FOOTER ===== */
         .footer {
-            background: #2c3e50;
+            background: var(--primary);
             color: white;
             padding: 40px 20px;
             text-align: center;
         }
-        .footer-links { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
-        .footer-links a { color: white; text-decoration: none; }
 
+        .footer h3 {
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .footer p {
+            opacity: 0.6;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover { color: white; }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== RESPONSIVO ===== */
         @media (max-width: 768px) {
-            .hero h1 { font-size: 28px; }
-            .cards { grid-template-columns: 1fr; }
-            .galeria-seta { font-size: 30px; padding: 10px; }
-            .galeria-seta-esq { left: 10px; }
-            .galeria-seta-dir { right: 10px; }
+            .hero { padding: 50px 16px 60px; }
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .btn-hero-primary, .btn-hero-secondary { width: 100%; max-width: 300px; text-align: center; justify-content: center; }
+            .stats-bar { gap: 20px; padding: 14px; }
+            .stat-item strong { font-size: 18px; }
+            .container { padding: 30px 16px; }
+            .section-header h2 { font-size: 24px; }
+            .filtros { flex-direction: column; }
+            .filtro-input { min-width: unset; }
+            .cards { grid-template-columns: 1fr; gap: 16px; }
+            .card-fotos img { height: 75px; }
+            .card-actions { grid-template-columns: 1fr; }
+            .modal-avaliacao-content { margin: 2% 12px; padding: 24px 20px; }
+            .galeria-seta { font-size: 28px; padding: 10px; }
+            .galeria-seta-esq { left: 8px; }
+            .galeria-seta-dir { right: 8px; }
+        }
+
+        @media (max-width: 400px) {
+            .hero h1 { font-size: 26px; }
+            .card-header { padding: 18px 16px 16px; }
         }
     </style>
 </head>
 <body>
 
+<!-- HERO -->
 <div class="hero">
-    <h1>🏗️ Encontre o Gesseiro Ideal para seu Projeto</h1>
-    <p>Compare preços, veja avaliações e contrate profissionais qualificados</p>
+    <div class="hero-badge">📍 Grajaú - Maranhão</div>
+    <h1>Encontre o <span>Gesseiro Ideal</span><br>para seu Projeto</h1>
+    <p>Profissionais de gesso em Grajaú e região. Compare preços, veja avaliações e contrate agora!</p>
     <div class="hero-buttons">
-        <a href="cadastro-gesseiro.html" class="btn-primary">Sou Gesseiro - Cadastrar</a>
-        <a href="#gesseiros" class="btn-secondary">Ver Profissionais</a>
+        <a href="cadastro-gesseiro.html" class="btn-hero-primary">🏗️ Sou Gesseiro — Cadastrar</a>
+        <a href="#gesseiros" class="btn-hero-secondary">Ver Profissionais ↓</a>
     </div>
 </div>
 
+<!-- STATS BAR -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <strong id="statGesseiros">...</strong>
+        <span>Gesseiros Cadastrados</span>
+    </div>
+    <div class="stat-item">
+        <strong id="statAvaliacoes">...</strong>
+        <span>Avaliações Realizadas</span>
+    </div>
+    <div class="stat-item">
+        <strong>Grajaú - MA</strong>
+        <span>Região Atendida</span>
+    </div>
+</div>
+
+<!-- LISTA DE GESSEIROS -->
 <div class="container" id="gesseiros">
-    <h2 class="section-title">Profissionais Disponíveis</h2>
-    <p class="section-subtitle">Escolha o melhor gesseiro para o seu projeto</p>
+    <div class="section-header">
+        <h2>Gesseiros em Grajaú - MA</h2>
+        <p>Reboco, forro, sanca e gesso decorativo. Encontre o profissional certo para você.</p>
+    </div>
 
     <div class="filtros">
-        <input type="text" id="filtroCidade" placeholder="🔍 Buscar por cidade...">
-        <input type="text" id="filtroEspecialidade" placeholder="🔍 Buscar por especialidade...">
-        <select id="filtroOrdenacao">
+        <input type="text" id="filtroCidade" class="filtro-input" placeholder="🔍 Buscar por cidade ou nome...">
+        <input type="text" id="filtroEspecialidade" class="filtro-input" placeholder="🔍 Buscar por especialidade...">
+        <select id="filtroOrdenacao" class="filtro-input">
             <option value="">Ordenar por...</option>
             <option value="nome">Nome A-Z</option>
             <option value="cidade">Cidade</option>
@@ -353,36 +800,36 @@
         </select>
     </div>
 
-    <div id="listaGesseiros" class="cards"></div>
+    <div id="listaGesseiros" class="cards">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Carregando profissionais...</p>
+        </div>
+    </div>
 </div>
 
-<!-- GALERIA DE FOTOS -->
+<!-- MODAL GALERIA -->
 <div id="modalGaleria" class="modal-galeria" onclick="fecharGaleria()">
-    <span class="galeria-close">&times;</span>
+    <span class="galeria-close" onclick="fecharGaleria()">&times;</span>
     <span class="galeria-seta galeria-seta-esq" onclick="event.stopPropagation(); navegarFoto(-1)">◀</span>
     <span class="galeria-seta galeria-seta-dir" onclick="event.stopPropagation(); navegarFoto(1)">▶</span>
-    
     <div class="galeria-container" onclick="event.stopPropagation()">
         <img id="galeriaImagem" class="galeria-imagem" src="" alt="Foto">
         <div class="galeria-legenda">
-            <h3>📝 Descrição</h3>
             <p id="galeriaTexto"></p>
         </div>
         <div class="galeria-contador" id="galeriaContador"></div>
     </div>
 </div>
 
-<!-- MODAL DE AVALIAÇÃO -->
+<!-- MODAL AVALIAÇÃO -->
 <div id="modalAvaliacao" class="modal-avaliacao" onclick="fecharModalAvaliacao()">
     <div class="modal-avaliacao-content" onclick="event.stopPropagation()">
-        <h2 style="text-align: center; margin-bottom: 10px;">⭐ Avaliar Profissional</h2>
-        <p id="nomeGesseiroAvaliacao" style="text-align: center; color: #666; margin-bottom: 20px;"></p>
-        
+        <h2>⭐ Avaliar Profissional</h2>
+        <p id="nomeGesseiroAvaliacao" style="text-align:center; color:var(--text-muted); margin-bottom:16px; font-size:15px;"></p>
+
         <div class="validacao-info">
-            <strong>ℹ️ Avaliação verificada</strong><br>
-            Para evitar avaliações falsas, é obrigatório informar:
-            <br>• Seu nome
-            <br>• Email OU Telefone (pelo menos um)
+            🔒 Sua avaliação é verificada por email ou telefone para garantir autenticidade.
         </div>
 
         <div class="estrelas-input" id="estrelasInput">
@@ -395,49 +842,47 @@
 
         <form id="formAvaliacao">
             <div class="form-group">
-                <label for="nomeAvaliador">📝 Seu Nome *</label>
-                <input type="text" id="nomeAvaliador" required placeholder="João Silva">
+                <label>Seu Nome *</label>
+                <input type="text" id="nomeAvaliador" placeholder="Como você se chama?" required>
             </div>
             <div class="form-group">
-                <label for="emailAvaliador">📧 Seu Email</label>
+                <label>Email</label>
                 <input type="email" id="emailAvaliador" placeholder="seu@email.com">
-                <small style="color: #666; font-size: 12px;">Email OU telefone é obrigatório</small>
             </div>
             <div class="form-group">
-                <label for="telefoneAvaliador">📱 Seu Telefone</label>
-                <input type="tel" id="telefoneAvaliador" placeholder="(85) 99999-9999">
-                <small style="color: #666; font-size: 12px;">Email OU telefone é obrigatório</small>
+                <label>WhatsApp</label>
+                <input type="tel" id="telefoneAvaliador" placeholder="(99) 99999-9999">
             </div>
             <div class="form-group">
-                <label for="comentarioAvaliacao">💬 Comentário (opcional)</label>
-                <textarea id="comentarioAvaliacao" placeholder="Conte sua experiência..."></textarea>
+                <label>Comentário</label>
+                <textarea id="comentarioAvaliacao" rows="3" placeholder="Como foi o serviço? Conte sua experiência..."></textarea>
             </div>
-            <button type="submit" class="btn-enviar-avaliacao">Enviar Avaliação</button>
+            <button type="submit" class="btn-enviar-avaliacao">✅ Enviar Avaliação</button>
         </form>
+        <button class="btn-fechar-modal" onclick="fecharModalAvaliacao()">Cancelar</button>
     </div>
 </div>
 
+<!-- FOOTER -->
 <div class="footer">
-    <div class="footer-content">
-        <h3>🏗️ SeuGesseiro</h3>
-        <p>A plataforma que conecta profissionais e clientes</p>
-        <div class="footer-links">
-            <a href="login.html">Área do Gesseiro</a>
-            <a href="cadastro-gesseiro.html">Cadastre-se</a>
-            <a href="login-admin.html" style="opacity: 0.5;">Admin</a>
-        </div>
-        <p style="margin-top: 30px; opacity: 0.7;">© 2025 SeuGesseiro</p>
+    <h3>🏗️ SeuGesseiro Grajaú</h3>
+    <p>A plataforma que conecta clientes e gesseiros em Grajaú - MA</p>
+    <p>Reboco de gesso • Forro de gesso • Sanca • Gesso decorativo</p>
+    <div class="footer-links">
+        <a href="cadastro-gesseiro.html">Sou Gesseiro — Cadastrar</a>
+        <a href="login.html">Login</a>
     </div>
+    <p style="margin-top:24px; opacity:0.3; font-size:12px;">© 2026 SeuGesseiro Grajaú - MA</p>
 </div>
 
 <script>
 let todosGesseiros = [];
-let gesseiroIdAvaliando = null;
-let estrelasSelecionadas = 0;
 let fotosAtual = [];
 let fotoAtualIndex = 0;
+let gesseiroIdAvaliando = null;
+let estrelasSelecionadas = 0;
 
-// === GALERIA DE FOTOS ===
+// === GALERIA ===
 function abrirGaleria(fotos, index) {
     fotosAtual = fotos;
     fotoAtualIndex = index;
@@ -462,10 +907,9 @@ function mostrarFotoAtual() {
     const foto = fotosAtual[fotoAtualIndex];
     document.getElementById('galeriaImagem').src = foto.url_foto;
     document.getElementById('galeriaTexto').textContent = foto.descricao || 'Sem descrição';
-    document.getElementById('galeriaContador').textContent = `Foto ${fotoAtualIndex + 1} de ${fotosAtual.length}`;
+    document.getElementById('galeriaContador').textContent = `${fotoAtualIndex + 1} / ${fotosAtual.length}`;
 }
 
-// Navegação por teclado
 document.addEventListener('keydown', (e) => {
     const modal = document.getElementById('modalGaleria');
     if (modal.style.display === 'block') {
@@ -475,85 +919,53 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// === MODAL DE AVALIAÇÃO ===
+// === MODAL AVALIAÇÃO ===
 function abrirModalAvaliacao(gesseiroId, nomeGesseiro) {
     gesseiroIdAvaliando = gesseiroId;
     estrelasSelecionadas = 0;
     document.getElementById('nomeGesseiroAvaliacao').textContent = nomeGesseiro;
     document.getElementById('formAvaliacao').reset();
-    
     const estrelas = document.querySelectorAll('#estrelasInput span');
-    estrelas.forEach(e => {
-        e.textContent = '☆';
-        e.classList.remove('selected');
-    });
-    
+    estrelas.forEach(e => { e.textContent = '☆'; e.classList.remove('selected'); });
     document.getElementById('modalAvaliacao').style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function fecharModalAvaliacao() {
     document.getElementById('modalAvaliacao').style.display = 'none';
+    document.body.style.overflow = 'auto';
 }
 
 function selecionarEstrela(qtd) {
     estrelasSelecionadas = qtd;
     const estrelas = document.querySelectorAll('#estrelasInput span');
     estrelas.forEach((estrela, index) => {
-        if (index < qtd) {
-            estrela.textContent = '⭐';
-            estrela.classList.add('selected');
-        } else {
-            estrela.textContent = '☆';
-            estrela.classList.remove('selected');
-        }
+        estrela.textContent = index < qtd ? '⭐' : '☆';
+        index < qtd ? estrela.classList.add('selected') : estrela.classList.remove('selected');
     });
 }
 
 document.getElementById('formAvaliacao').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const nome = document.getElementById('nomeAvaliador').value.trim();
     const email = document.getElementById('emailAvaliador').value.trim();
     const telefone = document.getElementById('telefoneAvaliador').value.trim();
     const comentario = document.getElementById('comentarioAvaliacao').value.trim();
-    
-    if (!nome) {
-        alert('⚠️ Por favor, informe seu nome');
-        return;
-    }
-    
-    if (!email && !telefone) {
-        alert('⚠️ Por favor, informe seu email OU telefone');
-        return;
-    }
-    
-    if (estrelasSelecionadas === 0) {
-        alert('⚠️ Por favor, selecione uma quantidade de estrelas');
-        return;
-    }
-    
-    if (email && !email.includes('@')) {
-        alert('⚠️ Email inválido');
-        return;
-    }
-    
+
+    if (!nome) { alert('⚠️ Por favor, informe seu nome'); return; }
+    if (!email && !telefone) { alert('⚠️ Informe seu email OU telefone'); return; }
+    if (estrelasSelecionadas === 0) { alert('⚠️ Selecione uma quantidade de estrelas'); return; }
+    if (email && !email.includes('@')) { alert('⚠️ Email inválido'); return; }
+
     try {
         const response = await fetch('/api/avaliacoes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                gesseiro_id: gesseiroIdAvaliando,
-                nome_avaliador: nome,
-                email_avaliador: email,
-                estrelas: estrelasSelecionadas,
-                comentario: comentario
-            })
+            body: JSON.stringify({ gesseiro_id: gesseiroIdAvaliando, nome_avaliador: nome, email_avaliador: email, estrelas: estrelasSelecionadas, comentario })
         });
-        
         const data = await response.json();
-        
         if (response.ok) {
-            alert('✅ Avaliação enviada com sucesso!');
+            alert('✅ Avaliação enviada! Obrigado.');
             fecharModalAvaliacao();
             carregarGesseiros();
         } else {
@@ -569,59 +981,68 @@ async function carregarGesseiros() {
     try {
         const response = await fetch('/api/gesseiros');
         todosGesseiros = await response.json();
+
+        // Atualizar stats
+        document.getElementById('statGesseiros').textContent = todosGesseiros.length;
+        const totalAvaliacoes = todosGesseiros.reduce((acc, g) => acc + (parseInt(g.total_avaliacoes) || 0), 0);
+        document.getElementById('statAvaliacoes').textContent = totalAvaliacoes;
+
         exibirTodosGesseiros(todosGesseiros);
     } catch (error) {
         console.error('Erro:', error);
+        document.getElementById('listaGesseiros').innerHTML = '<p style="text-align:center;color:#999;padding:40px;">Erro ao carregar profissionais</p>';
     }
 }
 
 function exibirTodosGesseiros(gesseiros) {
     const container = document.getElementById('listaGesseiros');
     container.innerHTML = '';
-    
     if (gesseiros.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:#999;">Nenhum gesseiro encontrado</p>';
+        container.innerHTML = '<p style="text-align:center;color:#999;padding:40px;grid-column:1/-1;">Nenhum gesseiro encontrado</p>';
         return;
     }
-    
-    gesseiros.forEach(gesseiro => container.appendChild(criarCard(gesseiro)));
+    gesseiros.forEach(g => container.appendChild(criarCard(g)));
 }
 
 function criarCard(gesseiro) {
     const card = document.createElement('div');
     card.className = 'card';
-    
+
     const whatsappLink = gesseiro.telefone.replace(/\D/g,'');
-    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, encontrei seu perfil!`);
-    
+    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, encontrei seu perfil no SeuGesseiro Grajaú!`);
+    const inicial = gesseiro.nome.charAt(0).toUpperCase();
+
+    // Avaliações
     let avaliacoesHTML = '';
     if (gesseiro.total_avaliacoes && gesseiro.total_avaliacoes > 0) {
         const media = parseFloat(gesseiro.media_avaliacoes).toFixed(1);
-        const estrelasVazias = 5 - Math.round(media);
+        const cheias = Math.round(parseFloat(media));
         avaliacoesHTML = `
             <div class="avaliacoes-resumo">
-                ${'⭐'.repeat(Math.round(media))}${'☆'.repeat(estrelasVazias)}
-                ${media} (${gesseiro.total_avaliacoes} avaliações)
-            </div>
-        `;
+                <span class="estrelas-display">${'⭐'.repeat(cheias)}${'☆'.repeat(5-cheias)}</span>
+                <span class="avaliacao-info">${media} · ${gesseiro.total_avaliacoes} avaliação(ões)</span>
+            </div>`;
     }
 
+    // Preços
     let precosHTML = '';
     if (gesseiro.servicos && gesseiro.servicos.length > 0) {
-        const servicosHTML = gesseiro.servicos.map(s => `
-            <div style="padding:8px 0;font-size:13px;">
-                <strong>${s.nome_servico}</strong><br>
-                <small>Com: R$ ${parseFloat(s.preco_com_material).toFixed(2)}/${s.unidade}</small><br>
-                <small>Sem: R$ ${parseFloat(s.preco_sem_material).toFixed(2)}/${s.unidade}</small>
-            </div>
-        `).join('');
-        precosHTML = `<div class="card-precos"><h4>💰 Preços</h4>${servicosHTML}</div>`;
+        const rows = gesseiro.servicos.slice(0,3).map(s => `
+            <div class="servico-row">
+                <span class="servico-nome">${s.nome_servico}</span>
+                <div class="servico-precos">
+                    <span class="preco-tag">R$${parseFloat(s.preco_com_material).toFixed(0)}/${s.unidade}</span>
+                    <span class="preco-tag sem">R$${parseFloat(s.preco_sem_material).toFixed(0)}/${s.unidade}</span>
+                </div>
+            </div>`).join('');
+        precosHTML = `<div class="card-precos"><h4>💰 Tabela de Preços</h4>${rows}</div>`;
     }
 
+    // Fotos
     let fotosHTML = '';
     if (gesseiro.fotos && gesseiro.fotos.length > 0) {
-        fotosHTML = `<div class="card-fotos">${gesseiro.fotos.slice(0,3).map((foto, index) => 
-            `<img src="${foto.url_foto}" alt="Trabalho" onclick="event.stopPropagation(); abrirGaleria(${JSON.stringify(gesseiro.fotos).replace(/"/g, '&quot;')}, ${index})">`
+        fotosHTML = `<div class="card-fotos">${gesseiro.fotos.slice(0,3).map((foto, index) =>
+            `<img src="${foto.url_foto}" alt="Trabalho de gesso" loading="lazy" onclick="event.stopPropagation(); abrirGaleria(${JSON.stringify(gesseiro.fotos).replace(/"/g, '&quot;')}, ${index})">`
         ).join('')}</div>`;
     }
 
@@ -630,49 +1051,50 @@ function criarCard(gesseiro) {
     if (gesseiro.latitude && gesseiro.longitude) {
         const mapaId = `mapa-${gesseiro.id}`;
         mapaHTML = `<div class="card-mapa" id="${mapaId}"></div>`;
-        
         setTimeout(() => {
             const mapDiv = document.getElementById(mapaId);
             if (mapDiv && typeof google !== 'undefined') {
                 const map = new google.maps.Map(mapDiv, {
                     center: { lat: gesseiro.latitude, lng: gesseiro.longitude },
-                    zoom: 15
+                    zoom: 15, mapTypeControl: false, streetViewControl: false, zoomControl: false
                 });
-                new google.maps.Marker({
-                    position: { lat: gesseiro.latitude, lng: gesseiro.longitude },
-                    map: map,
-                    title: gesseiro.nome
-                });
+                new google.maps.Marker({ position: { lat: gesseiro.latitude, lng: gesseiro.longitude }, map, title: gesseiro.nome });
             }
         }, 100);
     }
 
     card.innerHTML = `
         <div class="card-header">
+            <div class="card-avatar">${inicial}</div>
             <h3>${gesseiro.nome}</h3>
-            <p>📍 ${gesseiro.cidade}</p>
+            <div class="cidade">📍 ${gesseiro.cidade}</div>
         </div>
         <div class="card-body">
-            <div class="card-info">📱 ${gesseiro.telefone}</div>
+            <div class="card-info">📱 <strong>${gesseiro.telefone}</strong></div>
             ${gesseiro.instagram ? `<div class="card-info">📷 ${gesseiro.instagram}</div>` : ''}
-            <div class="card-info">💬 ${gesseiro.descricao.substring(0,100)}...</div>
+            <div class="card-descricao">${gesseiro.descricao ? gesseiro.descricao.substring(0,120) + '...' : ''}</div>
             ${avaliacoesHTML}
             ${precosHTML}
             ${fotosHTML}
             ${mapaHTML}
-            <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation()">💬 WhatsApp</a>
-            <button class="btn-avaliar" onclick="event.stopPropagation(); abrirModalAvaliacao(${gesseiro.id}, '${gesseiro.nome}')">⭐ Avaliar</button>
-        </div>
-    `;
-    
+            <div class="card-actions">
+                <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation()">
+                    💬 WhatsApp
+                </a>
+                <button class="btn-avaliar" onclick="event.stopPropagation(); abrirModalAvaliacao(${gesseiro.id}, '${gesseiro.nome}')">
+                    ⭐ Avaliar
+                </button>
+            </div>
+        </div>`;
+
     return card;
 }
 
 // FILTROS
 function aplicarFiltros() {
-    const termoCidade = document.getElementById('filtroCidade').value.toLowerCase();
-    const filtrados = todosGesseiros.filter(g => 
-        g.cidade.toLowerCase().includes(termoCidade) || g.nome.toLowerCase().includes(termoCidade)
+    const termo = document.getElementById('filtroCidade').value.toLowerCase();
+    const filtrados = todosGesseiros.filter(g =>
+        g.cidade.toLowerCase().includes(termo) || g.nome.toLowerCase().includes(termo)
     );
     exibirTodosGesseiros(filtrados);
 }
@@ -682,9 +1104,9 @@ document.getElementById('filtroEspecialidade').addEventListener('input', aplicar
 document.getElementById('filtroOrdenacao').addEventListener('change', e => {
     const criterio = e.target.value;
     let ordenados = [...todosGesseiros];
-    if (criterio==='nome') ordenados.sort((a,b)=>a.nome.localeCompare(b.nome));
-    else if (criterio==='cidade') ordenados.sort((a,b)=>a.cidade.localeCompare(b.cidade));
-    else if (criterio==='avaliacoes') ordenados.sort((a,b)=>(b.media_avaliacoes||0)-(a.media_avaliacoes||0));
+    if (criterio === 'nome') ordenados.sort((a,b) => a.nome.localeCompare(b.nome));
+    else if (criterio === 'cidade') ordenados.sort((a,b) => a.cidade.localeCompare(b.cidade));
+    else if (criterio === 'avaliacoes') ordenados.sort((a,b) => (b.media_avaliacoes||0) - (a.media_avaliacoes||0));
     exibirTodosGesseiros(ordenados);
 });
 
