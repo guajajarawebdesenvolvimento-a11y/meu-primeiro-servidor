@@ -557,6 +557,8 @@
         const token = localStorage.getItem('token');
         const gesseiroId = parseInt(localStorage.getItem('gesseiroId'));
         const nomeGesseiro = localStorage.getItem('nomeGesseiro');
+        
+        let planoAtual = { plano: 'free', fotos: 3, servicos: 2, destaque: false };
 
         if (!token || !gesseiroId) {
             window.location.href = 'login.html';
@@ -718,6 +720,19 @@
 
                 document.getElementById('totalServicos').textContent = servicos.length;
 
+                // Verificar limite do plano
+                if (servicos.length >= planoAtual.servicos && planoAtual.plano !== 'premium') {
+                    ['nomeServico', 'precoComMaterial', 'precoSemMaterial', 'unidade', 'distanciaMaxima'].forEach(id => {
+                        document.getElementById(id).disabled = true;
+                    });
+                    document.querySelector('#formServico button[type="submit"]').disabled = true;
+                    document.querySelector('#formServico button[type="submit"]').textContent = `🔒 Limite de ${planoAtual.servicos} serviços atingido`;
+                    const aviso = document.createElement('div');
+                    aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px;border-radius:8px;margin-top:12px;text-align:center;font-size:14px;';
+                    aviso.innerHTML = `Você atingiu o limite do plano ${planoAtual.plano.toUpperCase()}. <a href="planos.html" style="color:#856404;font-weight:700;text-decoration:underline;">Fazer upgrade</a>`;
+                    document.getElementById('formServico').appendChild(aviso);
+                }
+
                 if (servicos.length === 0) {
                     container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nenhum serviço cadastrado ainda</p>';
                     return;
@@ -810,6 +825,17 @@
 
                 document.getElementById('totalFotos').textContent = fotos.length;
 
+                // Verificar limite do plano
+                if (fotos.length >= planoAtual.fotos && planoAtual.plano !== 'premium') {
+                    document.getElementById('foto').disabled = true;
+                    document.querySelector('#formFoto button[type="submit"]').disabled = true;
+                    document.querySelector('#formFoto button[type="submit"]').textContent = `🔒 Limite de ${planoAtual.fotos} fotos atingido`;
+                    const aviso = document.createElement('div');
+                    aviso.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px;border-radius:8px;margin-top:12px;text-align:center;font-size:14px;';
+                    aviso.innerHTML = `Você atingiu o limite do plano ${planoAtual.plano.toUpperCase()}. <a href="planos.html" style="color:#856404;font-weight:700;text-decoration:underline;">Fazer upgrade</a>`;
+                    document.getElementById('formFoto').appendChild(aviso);
+                }
+
                 if (fotos.length === 0) {
                     galeria.innerHTML = '<p style="color: #999; text-align: center; padding: 20px; grid-column: 1/-1;">Nenhuma foto ainda</p>';
                     return;
@@ -853,10 +879,22 @@
             }
         }
 
+        // CARREGAR PLANO ATUAL
+        async function carregarPlano() {
+            try {
+                const res = await fetch(`/api/gesseiros/${gesseiroId}/plano`);
+                planoAtual = await res.json();
+            } catch (err) {
+                console.error('Erro ao carregar plano:', err);
+            }
+        }
+
         // INICIALIZAR
-        carregarPerfil();
-        carregarFotos();
-        carregarServicos();
+        carregarPlano().then(() => {
+            carregarPerfil();
+            carregarFotos();
+            carregarServicos();
+        });
 
         // ========== FOTO DE PERFIL ==========
         document.getElementById('formFotoPerfil').addEventListener('submit', async (e) => {

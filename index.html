@@ -982,6 +982,26 @@ async function carregarGesseiros() {
         const response = await fetch('/api/gesseiros');
         todosGesseiros = await response.json();
 
+        // Buscar planos de todos os gesseiros
+        for (let gesseiro of todosGesseiros) {
+            try {
+                const planoRes = await fetch(`/api/gesseiros/${gesseiro.id}/plano`);
+                const planoData = await planoRes.json();
+                gesseiro.plano = planoData.plano;
+                gesseiro.destaque = planoData.destaque;
+            } catch (err) {
+                gesseiro.plano = 'free';
+                gesseiro.destaque = false;
+            }
+        }
+
+        // Ordenar: Premium primeiro, depois por data
+        todosGesseiros.sort((a, b) => {
+            if (a.destaque && !b.destaque) return -1;
+            if (!a.destaque && b.destaque) return 1;
+            return new Date(b.data_cadastro) - new Date(a.data_cadastro);
+        });
+
         // Atualizar stats
         document.getElementById('statGesseiros').textContent = todosGesseiros.length;
         const totalAvaliacoes = todosGesseiros.reduce((acc, g) => acc + (parseInt(g.total_avaliacoes) || 0), 0);
@@ -1063,8 +1083,11 @@ function criarCard(gesseiro) {
         }, 100);
     }
 
+    const badgePremium = gesseiro.destaque ? '<div style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#f7c948,#f59e0b);color:#92400e;padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;">👑 PREMIUM</div>' : '';
+    
     card.innerHTML = `
         <div class="card-header">
+            ${badgePremium}
             <div class="card-avatar">${inicial}</div>
             <h3>${gesseiro.nome}</h3>
             <div class="cidade">📍 ${gesseiro.cidade}</div>

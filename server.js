@@ -500,17 +500,47 @@ app.post('/api/gesseiros/:id/fotos', verificarToken, upload.single('foto'), (req
   // URL pública do Cloudinary
   const fotoUrl = req.file.path;
 
-  db.adicionarFoto(gesseiroId, fotoUrl, descricao, (err, foto) => {
-    if (err) {
-      console.error('❌ Erro ao salvar foto:', err);
-      return res.status(500).json({ erro: 'Erro ao salvar foto' });
-    }
-    console.log('✅ Foto salva no Cloudinary:', fotoUrl);
-    res.json({ mensagem: 'Foto adicionada com sucesso!', foto: foto });
-  });
+  if (!req.file) {
+    return res.status(400).json({ erro: 'Nenhuma foto foi enviada' });
+  }
+
+  // Verificar limite do plano
+  db.pool.query('SELECT * FROM planos WHERE gesseiro_id = $1 ORDER BY data_criacao DESC LIMIT 1', [gesseiroId])
+    .then(planoResult => {
+      const plano = planoResult.rows[0];
+      const planoAtivo = plano && plano.status === 'ativo' && new Date(plano.data_expiracao) > new Date();
+      const planoTipo = planoAtivo ? plano.tipo_plano : 'free';
+      
+      const limites = { free: 3, profissional: 9, premium: 999 };
+      const limite = limites[planoTipo] || 3;
+
+      return db.pool.query('SELECT COUNT(*) FROM fotos WHERE gesseiro_id = $1', [gesseiroId])
+        .then(countResult => {
+          const totalFotos = parseInt(countResult.rows[0].count);
+          if (totalFotos >= limite) {
+            return res.status(403).json({ erro: `Limite de ${limite} fotos atingido no plano ${planoTipo.toUpperCase()}. Faça upgrade!` });
+          }
+
+          // URL pública do Cloudinary
+          const fotoUrl = req.file.path;
+
+          db.adicionarFoto(gesseiroId, fotoUrl, descricao, (err, foto) => {
+            if (err) {
+              console.error('❌ Erro ao salvar foto:', err);
+              return res.status(500).json({ erro: 'Erro ao salvar foto' });
+            }
+            console.log('✅ Foto salva no Cloudinary:', fotoUrl);
+            res.json({ mensagem: 'Foto adicionada com sucesso!', foto: foto });
+          });
+        });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ erro: 'Erro ao verificar plano' });
+    });
 });
 
-// ========== DELETAR FOTO ==========
+// REMOVIDO CÓDIGO DUPLICADO
 app.delete('/api/gesseiros/:gesseiroId/fotos/:fotoId', verificarToken, (req, res) => {
   const gesseiroId = parseInt(req.params.gesseiroId);
   const fotoId = req.params.fotoId;
@@ -555,17 +585,42 @@ app.post('/api/gesseiros/:id/servicos', verificarToken, (req, res) => {
 
   const dados = { gesseiro_id: gesseiroId, nome_servico, preco_com_material, preco_sem_material, unidade: unidade || 'm²', distancia_maxima: distancia_maxima || 50 };
 
-  db.adicionarServico(dados, (err, servico) => {
-    if (err) {
-      console.error('Erro ao adicionar serviço:', err);
-      return res.status(500).json({ erro: 'Erro ao adicionar serviço' });
-    }
-    console.log('💰 Serviço adicionado:', nome_servico);
-    res.json({ mensagem: 'Serviço adicionado com sucesso!', servico: servico });
-  });
+  // Verificar limite do plano
+  db.pool.query('SELECT * FROM planos WHERE gesseiro_id = $1 ORDER BY data_criacao DESC LIMIT 1', [gesseiroId])
+    .then(planoResult => {
+      const plano = planoResult.rows[0];
+      const planoAtivo = plano && plano.status === 'ativo' && new Date(plano.data_expiracao) > new Date();
+      const planoTipo = planoAtivo ? plano.tipo_plano : 'free';
+      
+      const limites = { free: 2, profissional: 9, premium: 999 };
+      const limite = limites[planoTipo] || 2;
+
+      return db.pool.query('SELECT COUNT(*) FROM servicos WHERE gesseiro_id = $1', [gesseiroId])
+        .then(countResult => {
+          const totalServicos = parseInt(countResult.rows[0].count);
+          if (totalServicos >= limite) {
+            return res.status(403).json({ erro: `Limite de ${limite} serviços atingido no plano ${planoTipo.toUpperCase()}. Faça upgrade!` });
+          }
+
+          const dados = { gesseiro_id: gesseiroId, nome_servico, preco_com_material, preco_sem_material, unidade: unidade || 'm²', distancia_maxima: distancia_maxima || 50 };
+
+          db.adicionarServico(dados, (err, servico) => {
+            if (err) {
+              console.error('Erro ao adicionar serviço:', err);
+              return res.status(500).json({ erro: 'Erro ao adicionar serviço' });
+            }
+            console.log('💰 Serviço adicionado:', nome_servico);
+            res.json({ mensagem: 'Serviço adicionado com sucesso!', servico: servico });
+          });
+        });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ erro: 'Erro ao verificar plano' });
+    });
 });
 
-// ========== LISTAR SERVIÇOS ==========
+// REMOVIDO CÓDIGO DUPLICADO
 app.get('/api/gesseiros/:id/servicos', (req, res) => {
   const gesseiroId = req.params.id;
 
