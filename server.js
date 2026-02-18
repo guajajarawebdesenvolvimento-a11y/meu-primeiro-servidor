@@ -887,6 +887,38 @@ app.get('/api/admin/receitas', verificarTokenAdmin, async (req, res) => {
   }
 });
 
+// ADMIN: Estatísticas detalhadas de cada gesseiro
+app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, res) => {
+  try {
+    const result = await db.pool.query(`
+      SELECT 
+        g.id,
+        g.nome,
+        g.cidade,
+        u.email,
+        p.tipo_plano,
+        p.status as status_plano,
+        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'whatsapp') as cliques_whatsapp,
+        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'instagram') as cliques_instagram,
+        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'compartilhar') as cliques_compartilhar,
+        (SELECT COUNT(*) FROM avaliacoes WHERE gesseiro_id = g.id) as total_avaliacoes,
+        (SELECT AVG(nota) FROM avaliacoes WHERE gesseiro_id = g.id) as media_avaliacoes,
+        (SELECT COUNT(*) FROM fotos WHERE gesseiro_id = g.id) as total_fotos,
+        (SELECT COUNT(*) FROM servicos WHERE gesseiro_id = g.id) as total_servicos
+      FROM gesseiros g
+      LEFT JOIN usuarios u ON g.usuario_id = u.id
+      LEFT JOIN planos p ON g.id = p.gesseiro_id
+      ORDER BY 
+        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id) DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+  }
+});
+
 // ADMIN: Ativar plano manualmente
 app.post('/api/admin/planos/ativar', verificarTokenAdmin, async (req, res) => {
   const { gesseiro_id, tipo_plano, dias } = req.body;
