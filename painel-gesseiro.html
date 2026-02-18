@@ -675,9 +675,9 @@
         async function carregarPlanoAtual() {
             try {
                 const response = await fetch(`/api/gesseiros/${gesseiroId}/plano`);
-                const plano = await response.json();
+                const data = await response.json();
 
-                const nomePlano = plano.tipo_plano || 'free';
+                const nomePlano = data.plano || 'free'; // CORRIGIDO: era tipo_plano
                 const planoUpper = nomePlano.toUpperCase();
                 
                 document.getElementById('planoAtualNome').textContent = planoUpper;
@@ -692,8 +692,8 @@
                 document.getElementById('planoDetalhes').textContent = detalhes[nomePlano] || '3 fotos • 2 serviços';
                 
                 // Se tiver data de expiração
-                if (plano.data_expiracao) {
-                    const dataExp = new Date(plano.data_expiracao);
+                if (data.data_expiracao) {
+                    const dataExp = new Date(data.data_expiracao);
                     const hoje = new Date();
                     const diasRestantes = Math.ceil((dataExp - hoje) / (1000 * 60 * 60 * 24));
                     
