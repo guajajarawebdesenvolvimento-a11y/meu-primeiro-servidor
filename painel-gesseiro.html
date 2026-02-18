@@ -378,6 +378,22 @@
     <div class="container">
         <div id="alertaPrincipal" class="alert"></div>
 
+        <!-- SEÇÃO: MEU PLANO -->
+        <div class="section" id="secaoPlano" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:2px solid #3b82f6;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+                <div>
+                    <h2 style="margin-bottom:8px;">💎 Meu Plano: <span id="planoAtualNome" style="color:#3b82f6;">FREE</span></h2>
+                    <p id="planoDetalhes" style="color:#666; margin-bottom:8px;">3 fotos • 2 serviços</p>
+                    <p id="planoExpiracao" style="color:#999; font-size:14px;"></p>
+                </div>
+                <div>
+                    <a href="planos.html" id="btnUpgrade" class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; padding:16px 32px; text-decoration:none; display:inline-block; font-size:16px;">
+                        🚀 Fazer Upgrade
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- SEÇÃO: FOTO DE PERFIL -->
         <div class="section">
             <h2>🖼️ Foto de Perfil</h2>
@@ -655,6 +671,56 @@
             }
         }
 
+        // CARREGAR PLANO ATUAL
+        async function carregarPlanoAtual() {
+            try {
+                const response = await fetch(`/api/gesseiros/${gesseiroId}/plano`);
+                const plano = await response.json();
+
+                const nomePlano = plano.tipo_plano || 'free';
+                const planoUpper = nomePlano.toUpperCase();
+                
+                document.getElementById('planoAtualNome').textContent = planoUpper;
+                
+                // Definir detalhes por plano
+                const detalhes = {
+                    'free': '3 fotos • 2 serviços',
+                    'profissional': '9 fotos • 9 serviços',
+                    'premium': 'Fotos ilimitadas • Serviços ilimitados • Destaque no topo'
+                };
+                
+                document.getElementById('planoDetalhes').textContent = detalhes[nomePlano] || '3 fotos • 2 serviços';
+                
+                // Se tiver data de expiração
+                if (plano.data_expiracao) {
+                    const dataExp = new Date(plano.data_expiracao);
+                    const hoje = new Date();
+                    const diasRestantes = Math.ceil((dataExp - hoje) / (1000 * 60 * 60 * 24));
+                    
+                    if (diasRestantes > 0) {
+                        document.getElementById('planoExpiracao').textContent = `⏰ Expira em ${diasRestantes} dias (${dataExp.toLocaleDateString('pt-BR')})`;
+                    } else {
+                        document.getElementById('planoExpiracao').textContent = '⚠️ Plano expirado';
+                    }
+                }
+                
+                // Mudar cor da seção baseado no plano
+                const secao = document.getElementById('secaoPlano');
+                if (nomePlano === 'premium') {
+                    secao.style.background = 'linear-gradient(135deg,#fef3c7,#fde68a)';
+                    secao.style.borderColor = '#f59e0b';
+                    document.getElementById('btnUpgrade').style.display = 'none'; // Esconde botão se já é premium
+                } else if (nomePlano === 'profissional') {
+                    secao.style.background = 'linear-gradient(135deg,#dbeafe,#bfdbfe)';
+                    secao.style.borderColor = '#3b82f6';
+                    document.getElementById('btnUpgrade').textContent = '🚀 Upgrade para Premium';
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar plano:', error);
+            }
+        }
+
         // SALVAR PERFIL
         document.getElementById('formPerfil').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -884,6 +950,7 @@
         carregarFotos();
         carregarServicos();
         carregarCliques();
+        carregarPlanoAtual(); // Carregar info do plano
 
         // ========== FOTO DE PERFIL ==========
         document.getElementById('formFotoPerfil').addEventListener('submit', async (e) => {
