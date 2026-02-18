@@ -890,28 +890,73 @@ app.get('/api/admin/receitas', verificarTokenAdmin, async (req, res) => {
 // ADMIN: Estatísticas detalhadas de cada gesseiro
 app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, res) => {
   try {
-    const result = await db.pool.query(`
+    // Primeiro pega todos os gesseiros
+    const gesseiros = await db.pool.query(`
       SELECT 
         g.id,
         g.nome,
         g.cidade,
-        COALESCE(u.email, 'sem-email') as email,
-        COALESCE(p.tipo_plano, 'free') as tipo_plano,
-        COALESCE(p.status, 'ativo') as status_plano,
-        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'whatsapp'), 0) as cliques_whatsapp,
-        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'instagram'), 0) as cliques_instagram,
-        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'compartilhar'), 0) as cliques_compartilhar,
-        COALESCE((SELECT COUNT(*)::integer FROM avaliacoes WHERE gesseiro_id = g.id), 0) as total_avaliacoes,
-        COALESCE((SELECT AVG(nota) FROM avaliacoes WHERE gesseiro_id = g.id), 0) as media_avaliacoes,
-        COALESCE((SELECT COUNT(*)::integer FROM fotos WHERE gesseiro_id = g.id), 0) as total_fotos,
-        COALESCE((SELECT COUNT(*)::integer FROM servicos WHERE gesseiro_id = g.id), 0) as total_servicos
+        u.email
       FROM gesseiros g
       LEFT JOIN usuarios u ON g.usuario_id = u.id
-      LEFT JOIN planos p ON g.id = p.gesseiro_id
       ORDER BY g.id DESC
     `);
     
-    res.json(result.rows);
+    // Depois busca dados adicionais de cada um
+    const resultado = [];
+    
+    for (const g of gesseiros.rows) {
+      // Plano
+      const planoRes = await db.pool.query(
+        'SELECT tipo_plano, status FROM planos WHERE gesseiro_id = $1',
+        [g.id]
+      );
+      const plano = planoRes.rows[0] || { tipo_plano: 'free', status: 'ativo' };
+      
+      // Cliques
+      const cliquesRes = await db.pool.query(`
+        SELECT tipo, COUNT(*) as total 
+        FROM cliques 
+        WHERE gesseiro_id = $1 
+        GROUP BY tipo
+      `, [g.id]);
+      
+      let whatsapp = 0, instagram = 0, compartilhar = 0;
+      cliquesRes.rows.forEach(c => {
+        if (c.tipo === 'whatsapp') whatsapp = parseInt(c.total);
+        if (c.tipo === 'instagram') instagram = parseInt(c.total);
+        if (c.tipo === 'compartilhar') compartilhar = parseInt(c.total);
+      });
+      
+      // Avaliações
+      const avalRes = await db.pool.query(
+        'SELECT COUNT(*) as total, AVG(nota) as media FROM avaliacoes WHERE gesseiro_id = $1',
+        [g.id]
+      );
+      const aval = avalRes.rows[0];
+      
+      // Fotos e Serviços
+      const fotosRes = await db.pool.query('SELECT COUNT(*) as total FROM fotos WHERE gesseiro_id = $1', [g.id]);
+      const servicosRes = await db.pool.query('SELECT COUNT(*) as total FROM servicos WHERE gesseiro_id = $1', [g.id]);
+      
+      resultado.push({
+        id: g.id,
+        nome: g.nome,
+        cidade: g.cidade,
+        email: g.email || 'sem-email',
+        tipo_plano: plano.tipo_plano,
+        status_plano: plano.status,
+        cliques_whatsapp: whatsapp,
+        cliques_instagram: instagram,
+        cliques_compartilhar: compartilhar,
+        total_avaliacoes: parseInt(aval.total) || 0,
+        media_avaliacoes: parseFloat(aval.media) || 0,
+        total_fotos: parseInt(fotosRes.rows[0].total) || 0,
+        total_servicos: parseInt(servicosRes.rows[0].total) || 0
+      });
+    }
+    
+    res.json(resultado);
   } catch (err) {
     console.error('Erro estatísticas detalhadas:', err);
     res.status(500).json({ erro: 'Erro ao buscar estatísticas', detalhes: err.message });
