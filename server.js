@@ -890,75 +890,97 @@ app.get('/api/admin/receitas', verificarTokenAdmin, async (req, res) => {
 // ADMIN: Estatísticas detalhadas de cada gesseiro
 app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, res) => {
   try {
-    // Primeiro pega todos os gesseiros com email
-    const gesseiros = await db.pool.query(`
-      SELECT 
-        g.id,
-        g.nome,
-        g.cidade,
-        g.email
-      FROM gesseiros g
-      ORDER BY g.id DESC
-    `);
+    console.log('📊 Iniciando busca de estatísticas...');
     
-    // Depois busca dados adicionais de cada um
+    // PASSO 1: Só buscar gesseiros
+    const gesseiros = await db.pool.query('SELECT id, nome, cidade, email FROM gesseiros ORDER BY id DESC');
+    console.log(`✅ Encontrados ${gesseiros.rows.length} gesseiros`);
+    
+    if (gesseiros.rows.length === 0) {
+      return res.json([]);
+    }
+    
+    // PASSO 2: Para cada gesseiro, montar dados básicos
     const resultado = [];
     
     for (const g of gesseiros.rows) {
-      // Plano
-      const planoRes = await db.pool.query(
-        'SELECT tipo_plano, status FROM planos WHERE gesseiro_id = $1',
-        [g.id]
-      );
-      const plano = planoRes.rows[0] || { tipo_plano: 'free', status: 'ativo' };
-      
-      // Cliques
-      const cliquesRes = await db.pool.query(`
-        SELECT tipo, COUNT(*) as total 
-        FROM cliques 
-        WHERE gesseiro_id = $1 
-        GROUP BY tipo
-      `, [g.id]);
-      
-      let whatsapp = 0, instagram = 0, compartilhar = 0;
-      cliquesRes.rows.forEach(c => {
-        if (c.tipo === 'whatsapp') whatsapp = parseInt(c.total);
-        if (c.tipo === 'instagram') instagram = parseInt(c.total);
-        if (c.tipo === 'compartilhar') compartilhar = parseInt(c.total);
-      });
-      
-      // Avaliações
-      const avalRes = await db.pool.query(
-        'SELECT COUNT(*) as total, AVG(nota) as media FROM avaliacoes WHERE gesseiro_id = $1',
-        [g.id]
-      );
-      const aval = avalRes.rows[0];
-      
-      // Fotos e Serviços
-      const fotosRes = await db.pool.query('SELECT COUNT(*) as total FROM fotos WHERE gesseiro_id = $1', [g.id]);
-      const servicosRes = await db.pool.query('SELECT COUNT(*) as total FROM servicos WHERE gesseiro_id = $1', [g.id]);
-      
-      resultado.push({
+      const item = {
         id: g.id,
         nome: g.nome,
         cidade: g.cidade,
         email: g.email || 'sem-email',
-        tipo_plano: plano.tipo_plano,
-        status_plano: plano.status,
-        cliques_whatsapp: whatsapp,
-        cliques_instagram: instagram,
-        cliques_compartilhar: compartilhar,
-        total_avaliacoes: parseInt(aval.total) || 0,
-        media_avaliacoes: parseFloat(aval.media) || 0,
-        total_fotos: parseInt(fotosRes.rows[0].total) || 0,
-        total_servicos: parseInt(servicosRes.rows[0].total) || 0
-      });
+        tipo_plano: 'free',
+        status_plano: 'ativo',
+        cliques_whatsapp: 0,
+        cliques_instagram: 0,
+        cliques_compartilhar: 0,
+        total_avaliacoes: 0,
+        media_avaliacoes: 0,
+        total_fotos: 0,
+        total_servicos: 0
+      };
+      
+      // Tentar buscar plano (se der erro, usa valores padrão)
+      try {
+        const plano = await db.pool.query('SELECT tipo_plano, status FROM planos WHERE gesseiro_id = $1', [g.id]);
+        if (plano.rows.length > 0) {
+          item.tipo_plano = plano.rows[0].tipo_plano;
+          item.status_plano = plano.rows[0].status;
+        }
+      } catch (e) {
+        console.log(`⚠️ Erro ao buscar plano do gesseiro ${g.id}:`, e.message);
+      }
+      
+      // Tentar buscar cliques
+      try {
+        const cliques = await db.pool.query('SELECT tipo, COUNT(*) as total FROM cliques WHERE gesseiro_id = $1 GROUP BY tipo', [g.id]);
+        cliques.rows.forEach(c => {
+          if (c.tipo === 'whatsapp') item.cliques_whatsapp = parseInt(c.total);
+          if (c.tipo === 'instagram') item.cliques_instagram = parseInt(c.total);
+          if (c.tipo === 'compartilhar') item.cliques_compartilhar = parseInt(c.total);
+        });
+      } catch (e) {
+        console.log(`⚠️ Erro ao buscar cliques do gesseiro ${g.id}:`, e.message);
+      }
+      
+      // Tentar buscar fotos
+      try {
+        const fotos = await db.pool.query('SELECT COUNT(*) as total FROM fotos WHERE gesseiro_id = $1', [g.id]);
+        item.total_fotos = parseInt(fotos.rows[0].total) || 0;
+      } catch (e) {
+        console.log(`⚠️ Erro ao buscar fotos do gesseiro ${g.id}:`, e.message);
+      }
+      
+      // Tentar buscar serviços
+      try {
+        const servicos = await db.pool.query('SELECT COUNT(*) as total FROM servicos WHERE gesseiro_id = $1', [g.id]);
+        item.total_servicos = parseInt(servicos.rows[0].total) || 0;
+      } catch (e) {
+        console.log(`⚠️ Erro ao buscar serviços do gesseiro ${g.id}:`, e.message);
+      }
+      
+      // Tentar buscar avaliações
+      try {
+        const aval = await db.pool.query('SELECT COUNT(*) as total, AVG(nota) as media FROM avaliacoes WHERE gesseiro_id = $1', [g.id]);
+        item.total_avaliacoes = parseInt(aval.rows[0].total) || 0;
+        item.media_avaliacoes = parseFloat(aval.rows[0].media) || 0;
+      } catch (e) {
+        console.log(`⚠️ Erro ao buscar avaliações do gesseiro ${g.id}:`, e.message);
+      }
+      
+      resultado.push(item);
     }
     
+    console.log(`✅ Estatísticas montadas com sucesso para ${resultado.length} gesseiros`);
     res.json(resultado);
+    
   } catch (err) {
-    console.error('Erro nas estatísticas:', err);
-    res.status(500).json({ erro: 'Erro ao buscar estatísticas', detalhes: err.message });
+    console.error('❌ ERRO FATAL nas estatísticas:', err);
+    res.status(500).json({ 
+      erro: 'Erro ao buscar estatísticas', 
+      mensagem: err.message,
+      stack: err.stack 
+    });
   }
 });
 
