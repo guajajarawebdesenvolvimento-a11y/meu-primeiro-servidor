@@ -283,6 +283,41 @@ app.put('/api/usuarios/alterar-email', verificarToken, async (req, res) => {
   }
 });
 
+// Alterar Senha
+app.put('/api/usuarios/alterar-senha', verificarToken, async (req, res) => {
+  const { senhaAtual, novaSenha } = req.body;
+  
+  if (!senhaAtual || !novaSenha) {
+    return res.status(400).json({ erro: 'Senha atual e nova senha são obrigatórias' });
+  }
+  
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ erro: 'Nova senha deve ter no mínimo 6 caracteres' });
+  }
+  
+  try {
+    const usuario = await db.pool.query('SELECT * FROM usuarios WHERE id = $1', [req.usuario.usuarioId]);
+    
+    if (usuario.rows.length === 0) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+    
+    const senhaOk = await bcrypt.compare(senhaAtual, usuario.rows[0].senha);
+    if (!senhaOk) {
+      return res.status(401).json({ erro: 'Senha atual incorreta' });
+    }
+    
+    const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+    await db.pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [novaSenhaHash, req.usuario.usuarioId]);
+    
+    console.log(`🔐 Usuário ${req.usuario.usuarioId} alterou a senha`);
+    res.json({ mensagem: 'Senha alterada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao alterar senha:', err);
+    res.status(500).json({ erro: 'Erro ao alterar senha' });
+  }
+});
+
 // ========== CADASTRO COMPLETO ==========
 app.post('/api/cadastro-completo', async (req, res) => {
   const { nome, cidade, telefone, email, instagram, descricao, senha, endereco, latitude, longitude } = req.body;
@@ -1008,6 +1043,59 @@ app.post('/api/admin/planos/ativar', verificarTokenAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: 'Erro ao ativar plano' });
+  }
+});
+
+// ADMIN: Resetar senha de usuário
+app.post('/api/admin/resetar-senha', verificarTokenAdmin, async (req, res) => {
+  const { usuarioId, novaSenha } = req.body;
+  
+  if (!usuarioId || !novaSenha) {
+    return res.status(400).json({ erro: 'usuarioId e novaSenha são obrigatórios' });
+  }
+  
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ erro: 'Senha deve ter no mínimo 6 caracteres' });
+  }
+  
+  try {
+    const senhaHash = await bcrypt.hash(novaSenha, 10);
+    
+    await db.pool.query(
+      'UPDATE usuarios SET senha = $1 WHERE id = $2',
+      [senhaHash, usuarioId]
+    );
+    
+    console.log(`🔐 Admin resetou senha do usuário ID: ${usuarioId}`);
+    res.json({ mensagem: 'Senha resetada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao resetar senha:', err);
+    res.status(500).json({ erro: 'Erro ao resetar senha' });
+  }
+});
+
+// ADMIN: Desativar plano
+app.post('/api/admin/planos/desativar', verificarTokenAdmin, async (req, res) => {
+  const { gesseiroId } = req.body;
+  
+  if (!gesseiroId) {
+    return res.status(400).json({ erro: 'gesseiroId é obrigatório' });
+  }
+  
+  try {
+    // Atualiza plano para free e status inativo
+    await db.pool.query(
+      `UPDATE planos 
+       SET tipo_plano = 'free', status = 'inativo', data_expiracao = NULL 
+       WHERE gesseiro_id = $1`,
+      [gesseiroId]
+    );
+    
+    console.log(`❌ Admin desativou plano do gesseiro ID: ${gesseiroId}`);
+    res.json({ mensagem: 'Plano desativado! Gesseiro voltou para FREE.' });
+  } catch (err) {
+    console.error('Erro ao desativar plano:', err);
+    res.status(500).json({ erro: 'Erro ao desativar plano' });
   }
 });
 
