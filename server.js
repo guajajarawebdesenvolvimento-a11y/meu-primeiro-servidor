@@ -895,27 +895,26 @@ app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, r
         g.id,
         g.nome,
         g.cidade,
-        u.email,
-        p.tipo_plano,
-        p.status as status_plano,
-        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'whatsapp') as cliques_whatsapp,
-        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'instagram') as cliques_instagram,
-        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id AND tipo = 'compartilhar') as cliques_compartilhar,
-        (SELECT COUNT(*) FROM avaliacoes WHERE gesseiro_id = g.id) as total_avaliacoes,
-        (SELECT AVG(nota) FROM avaliacoes WHERE gesseiro_id = g.id) as media_avaliacoes,
-        (SELECT COUNT(*) FROM fotos WHERE gesseiro_id = g.id) as total_fotos,
-        (SELECT COUNT(*) FROM servicos WHERE gesseiro_id = g.id) as total_servicos
+        COALESCE(u.email, 'sem-email') as email,
+        COALESCE(p.tipo_plano, 'free') as tipo_plano,
+        COALESCE(p.status, 'ativo') as status_plano,
+        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'whatsapp'), 0) as cliques_whatsapp,
+        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'instagram'), 0) as cliques_instagram,
+        COALESCE((SELECT COUNT(*)::integer FROM cliques WHERE gesseiro_id = g.id AND tipo = 'compartilhar'), 0) as cliques_compartilhar,
+        COALESCE((SELECT COUNT(*)::integer FROM avaliacoes WHERE gesseiro_id = g.id), 0) as total_avaliacoes,
+        COALESCE((SELECT AVG(nota) FROM avaliacoes WHERE gesseiro_id = g.id), 0) as media_avaliacoes,
+        COALESCE((SELECT COUNT(*)::integer FROM fotos WHERE gesseiro_id = g.id), 0) as total_fotos,
+        COALESCE((SELECT COUNT(*)::integer FROM servicos WHERE gesseiro_id = g.id), 0) as total_servicos
       FROM gesseiros g
       LEFT JOIN usuarios u ON g.usuario_id = u.id
       LEFT JOIN planos p ON g.id = p.gesseiro_id
-      ORDER BY 
-        (SELECT COUNT(*) FROM cliques WHERE gesseiro_id = g.id) DESC
+      ORDER BY g.id DESC
     `);
     
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+    console.error('Erro estatísticas detalhadas:', err);
+    res.status(500).json({ erro: 'Erro ao buscar estatísticas', detalhes: err.message });
   }
 });
 

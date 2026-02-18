@@ -713,9 +713,21 @@
                 const response = await fetch('/api/admin/estatisticas-detalhadas', {
                     headers: { 'Authorization': `Bearer ${adminToken}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const stats = await response.json();
 
                 const container = document.getElementById('estatisticasLista');
+                
+                if (!Array.isArray(stats)) {
+                    console.error('Stats não é array:', stats);
+                    container.innerHTML = '<p style="color:red;">Erro: resposta inválida do servidor</p>';
+                    return;
+                }
+                
                 if (stats.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#999;">Nenhum gesseiro cadastrado</p>';
                     return;
