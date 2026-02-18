@@ -890,15 +890,14 @@ app.get('/api/admin/receitas', verificarTokenAdmin, async (req, res) => {
 // ADMIN: Estatísticas detalhadas de cada gesseiro
 app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, res) => {
   try {
-    // Primeiro pega todos os gesseiros
+    // Primeiro pega todos os gesseiros com email
     const gesseiros = await db.pool.query(`
       SELECT 
         g.id,
         g.nome,
         g.cidade,
-        u.email
+        g.email
       FROM gesseiros g
-      LEFT JOIN usuarios u ON g.usuario_id = u.id
       ORDER BY g.id DESC
     `);
     
@@ -958,7 +957,7 @@ app.get('/api/admin/estatisticas-detalhadas', verificarTokenAdmin, async (req, r
     
     res.json(resultado);
   } catch (err) {
-    console.error('Erro estatísticas detalhadas:', err);
+    console.error('Erro nas estatísticas:', err);
     res.status(500).json({ erro: 'Erro ao buscar estatísticas', detalhes: err.message });
   }
 });
