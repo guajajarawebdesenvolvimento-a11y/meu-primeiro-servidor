@@ -165,12 +165,58 @@
         <button type="submit" class="btn-login">Entrar</button>
     </form>
 
+    <div style="text-align:center; margin-top:16px;">
+        <a href="#" onclick="mostrarAjudaSenha(); return false;" style="color:#e94560; text-decoration:none; font-size:14px;">🔐 Esqueci minha senha</a>
+    </div>
+
     <div class="divider">ou</div>
 
     <div class="links">
+        <a href="#" onclick="mostrarModalEsqueciSenha(event)">🔐 Esqueci minha senha</a>
+        <br><br>
         <a href="cadastro-gesseiro.html">Ainda não tem conta? Cadastre-se grátis</a>
         <br><br>
         <a href="/">← Voltar para página inicial</a>
+    </div>
+</div>
+
+<!-- MODAL ESQUECI SENHA -->
+<div id="modalEsqueciSenha" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; padding:40px; border-radius:20px; max-width:450px; width:90%; text-align:center;">
+        <h2 style="font-family:Sora; margin-bottom:20px;">🔐 Esqueceu sua senha?</h2>
+        <p style="margin-bottom:24px; line-height:1.6;">Entre em contato pelo WhatsApp que resetamos sua senha:</p>
+        <a href="https://wa.me/5599985352897?text=Olá! Esqueci minha senha do SeuGesseiro e preciso de ajuda." 
+           style="display:inline-block; background:#25D366; color:white; padding:16px 32px; border-radius:12px; text-decoration:none; font-weight:700; margin-bottom:16px;">
+           💬 Chamar no WhatsApp
+        </a>
+        <br>
+        <button onclick="fecharModalEsqueciSenha()" style="background:#e0e0e0; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600;">Fechar</button>
+    </div>
+</div>
+
+<script>
+function mostrarModalEsqueciSenha(e) {
+    e.preventDefault();
+    document.getElementById('modalEsqueciSenha').style.display = 'flex';
+}
+
+function fecharModalEsqueciSenha() {
+    document.getElementById('modalEsqueciSenha').style.display = 'none';
+}
+</script>
+
+<!-- Modal Ajuda -->
+<div id="modalAjuda" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center;">
+        <h2 style="font-family:Sora; margin-bottom:20px;">🔐 Esqueceu sua senha?</h2>
+        <p style="margin-bottom:24px; color:#666;">Entre em contato pelo WhatsApp e nós vamos te ajudar a recuperar o acesso!</p>
+        <a href="https://wa.me/5599985352897?text=Olá! Esqueci minha senha do SeuGesseiro e preciso de ajuda." 
+           target="_blank" 
+           style="display:inline-block; background:linear-gradient(135deg,#25D366,#128C7E); color:white; padding:16px 32px; border-radius:12px; text-decoration:none; font-weight:700; margin-bottom:16px;">
+            💬 Chamar no WhatsApp
+        </a>
+        <br>
+        <button onclick="fecharModal()" style="background:#f0f0f0; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; margin-top:8px;">Fechar</button>
     </div>
 </div>
 
@@ -216,6 +262,16 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
         alerta.style.display = 'block';
     }
 });
+
+function mostrarAjudaSenha() {
+    const modal = document.getElementById('modalAjuda');
+    modal.style.display = 'flex';
+}
+
+function fecharModal() {
+    const modal = document.getElementById('modalAjuda');
+    modal.style.display = 'none';
+}
 </script>
 
 </body>

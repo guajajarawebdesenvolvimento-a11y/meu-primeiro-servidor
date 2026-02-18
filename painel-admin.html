@@ -479,6 +479,7 @@
                         <td><span class="badge success">${usuario.total_fotos || 0} fotos</span></td>
                         <td>
                             <button class="btn btn-view" onclick="verDetalhes(${usuario.gesseiro_id})">👁️ Ver</button>
+                            <button class="btn" style="background:#f59e0b;color:white;" onclick="resetarSenha(${usuario.usuario_id}, '${usuario.nome}')">🔐 Resetar Senha</button>
                             <button class="btn btn-danger" onclick="deletarUsuario(${usuario.usuario_id}, '${usuario.nome}')">🗑️ Deletar</button>
                         </td>
                     `;
@@ -615,6 +616,7 @@
                             <td>${p.total_servicos}/∞</td>
                             <td>
                                 <button class="btn btn-view" onclick="ativarPlanoManual(${p.gesseiro_id}, '${p.nome}')">💎 Ativar Plano</button>
+                                ${p.plano !== 'free' ? `<button class="btn btn-danger" onclick="desativarPlano(${p.gesseiro_id}, '${p.nome}')">❌ Desativar</button>` : ''}
                             </td>
                         </tr>
                     `;
@@ -707,6 +709,65 @@
             }
         }
 
+        // RESETAR SENHA
+        async function resetarSenha(usuarioId, nomeUsuario) {
+            const novaSenha = prompt(`Digite a NOVA SENHA para ${nomeUsuario}:\n\n(Mínimo 6 caracteres)`);
+            if (!novaSenha) return;
+
+            if (novaSenha.length < 6) {
+                alert('❌ Senha deve ter no mínimo 6 caracteres!');
+                return;
+            }
+
+            if (!confirm(`Confirma resetar senha de ${nomeUsuario}?`)) return;
+
+            try {
+                const response = await fetch('/api/admin/resetar-senha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ usuarioId, novaSenha })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta(`✅ Senha resetada! Nova senha: ${novaSenha}`, 'success');
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao resetar senha', 'error');
+            }
+        }
+
+        // DESATIVAR PLANO
+        async function desativarPlano(gesseiroId, nomeGesseiro) {
+            if (!confirm(`❌ Desativar plano de ${nomeGesseiro}?\n\nEle voltará para o plano FREE (3 fotos, 2 serviços).`)) return;
+
+            try {
+                const response = await fetch('/api/admin/planos/desativar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ gesseiroId })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta(`✅ Plano desativado! ${nomeGesseiro} voltou para FREE.`, 'success');
+                    carregarPlanos();
+                } else {
+                    mostrarAlerta('❌ ' + data.erro, 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao desativar plano', 'error');
+            }
+        }
+
         // CARREGAR ESTATÍSTICAS DETALHADAS
         async function carregarEstatisticasDetalhadas() {
             try {
@@ -788,5 +849,65 @@
             carregarUsuarios();
         });
     </script>
+
+    <!-- BOTÃO FLUTUANTE DE AJUDA ADMIN -->
+    <button onclick="mostrarModalAjudaAdmin()" style="position:fixed; bottom:30px; right:30px; background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; width:60px; height:60px; border-radius:50%; font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(59,130,246,0.4); z-index:999; display:flex; align-items:center; justify-content:center;">
+        🛠️
+    </button>
+
+    <!-- MODAL DE AJUDA ADMIN -->
+    <div id="modalAjudaAdmin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:550px; width:90%;">
+            <h2 style="font-family:Sora; margin-bottom:24px; text-align:center;">🛠️ Painel Admin - Ajuda Rápida</h2>
+            
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:18px; margin-bottom:12px; color:#3b82f6;">📋 Funções Principais:</h3>
+                <ul style="line-height:2; color:#666;">
+                    <li><strong>👥 Usuários:</strong> Ver cadastros e resetar senhas</li>
+                    <li><strong>💎 Planos:</strong> Ativar/Desativar planos manualmente</li>
+                    <li><strong>💰 Receitas:</strong> Ver pagamentos e receita total</li>
+                    <li><strong>📊 Estatísticas:</strong> Cliques, fotos, serviços de cada gesseiro</li>
+                </ul>
+            </div>
+
+            <div style="border-top:1px solid #e0e0e0; padding-top:20px; margin-top:20px;">
+                <h3 style="font-size:18px; margin-bottom:12px; color:#3b82f6;">🔐 Resetar Senha:</h3>
+                <p style="color:#666; margin-bottom:12px;">1. Vá em "👥 Usuários"</p>
+                <p style="color:#666; margin-bottom:12px;">2. Clique "🔐 Resetar Senha"</p>
+                <p style="color:#666; margin-bottom:12px;">3. Digite senha nova (mín 6 caracteres)</p>
+                <p style="color:#666;">4. Passe a nova senha para o gesseiro</p>
+            </div>
+
+            <div style="border-top:1px solid #e0e0e0; padding-top:20px; margin-top:20px;">
+                <h3 style="font-size:18px; margin-bottom:12px; color:#3b82f6;">💰 Reembolso (7 dias):</h3>
+                <p style="color:#666; margin-bottom:12px;">1. Acesse Mercado Pago → Vendas</p>
+                <p style="color:#666; margin-bottom:12px;">2. Encontre o pagamento e clique "Devolver"</p>
+                <p style="color:#666; margin-bottom:12px;">3. No painel: "💎 Planos" → "❌ Desativar"</p>
+                <p style="color:#666;">4. Gesseiro volta para FREE</p>
+            </div>
+
+            <div style="margin-top:20px; padding:16px; background:#f0f9ff; border-radius:10px; border-left:4px solid #3b82f6;">
+                <strong>📱 Suporte Técnico:</strong><br>
+                <a href="https://wa.me/5599985352897?text=Olá! Sou admin e preciso de ajuda técnica." style="color:#3b82f6; text-decoration:none; font-weight:600;">
+                    💬 (99) 98535-2897
+                </a>
+            </div>
+
+            <button onclick="fecharModalAjudaAdmin()" style="width:100%; background:#e0e0e0; border:none; padding:14px; border-radius:10px; cursor:pointer; font-weight:600; margin-top:20px;">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <script>
+    function mostrarModalAjudaAdmin() {
+        document.getElementById('modalAjudaAdmin').style.display = 'flex';
+    }
+
+    function fecharModalAjudaAdmin() {
+        document.getElementById('modalAjudaAdmin').style.display = 'none';
+    }
+    </script>
+
 </body>
 </html>

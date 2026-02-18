@@ -413,6 +413,24 @@
             </form>
         </div>
 
+        <!-- SEÇÃO: ALTERAR SENHA -->
+        <div class="section">
+            <h2>🔐 Alterar Senha</h2>
+            <form id="formSenha">
+                <div class="row">
+                    <div class="form-group">
+                        <label>Senha Atual</label>
+                        <input type="password" id="senhaAtual" placeholder="Digite sua senha atual" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">🔐 Alterar Senha</button>
+            </form>
+        </div>
+
         <!-- SEÇÃO: EDITAR PERFIL -->
         <div class="section">
             <h2>✏️ Editar Perfil</h2>
@@ -926,6 +944,38 @@
             }
         });
 
+        // ========== ALTERAR SENHA ==========
+        document.getElementById('formSenha').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const senhaAtual = document.getElementById('senhaAtual').value;
+            const novaSenha = document.getElementById('novaSenha').value;
+
+            if (novaSenha.length < 6) {
+                mostrarAlerta('❌ Nova senha deve ter no mínimo 6 caracteres', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/usuarios/alterar-senha`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ senhaAtual, novaSenha })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    mostrarAlerta('✅ Senha alterada com sucesso!', 'success');
+                    document.getElementById('formSenha').reset();
+                } else {
+                    mostrarAlerta('❌ ' + (data.erro || 'Erro ao alterar senha'), 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('❌ Erro ao conectar', 'error');
+            }
+        });
+
         // ========== CARREGAR CLIQUES ==========
         async function carregarCliques() {
             try {
@@ -1065,5 +1115,63 @@
             div.textContent = '📍 ' + texto;
         }
     </script>
+
+    <!-- Botão Flutuante de Ajuda -->
+    <a href="https://wa.me/5599985352897?text=Olá! Preciso de ajuda com minha conta no SeuGesseiro." 
+       target="_blank"
+       style="position:fixed; bottom:30px; left:30px; background:linear-gradient(135deg,#e94560,#c73652); color:white; padding:16px 24px; border-radius:50px; text-decoration:none; font-weight:700; box-shadow:0 8px 24px rgba(233,69,96,0.4); z-index:999; display:flex; align-items:center; gap:8px; font-size:16px; animation:pulse 2s infinite;">
+        🆘 Preciso de Ajuda
+    </a>
+    
+    <!-- BOTÃO FLUTUANTE DE AJUDA -->
+    <button onclick="mostrarModalAjuda()" style="position:fixed; bottom:30px; right:30px; background:linear-gradient(135deg,#e94560,#c73652); color:white; border:none; width:60px; height:60px; border-radius:50%; font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(233,69,96,0.4); z-index:999; display:flex; align-items:center; justify-content:center;">
+        🆘
+    </button>
+
+    <!-- MODAL DE AJUDA -->
+    <div id="modalAjuda" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:500px; width:90%;">
+            <h2 style="font-family:Sora; margin-bottom:24px; text-align:center;">🆘 Precisa de Ajuda?</h2>
+            
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:18px; margin-bottom:12px;">📱 WhatsApp de Suporte</h3>
+                <a href="https://wa.me/5599985352897?text=Olá! Preciso de ajuda com o SeuGesseiro." 
+                   style="display:block; background:#25D366; color:white; padding:14px; border-radius:10px; text-decoration:none; text-align:center; font-weight:600; margin-bottom:16px;">
+                   💬 (99) 98535-2897
+                </a>
+            </div>
+
+            <div style="border-top:1px solid #e0e0e0; padding-top:20px; margin-top:20px;">
+                <h3 style="font-size:16px; margin-bottom:12px;">❓ Dúvidas Frequentes:</h3>
+                <ul style="line-height:2; color:#666;">
+                    <li>🔐 Esqueceu sua senha? Chame no WhatsApp</li>
+                    <li>📧 Email errado? Use a seção "Alterar Email"</li>
+                    <li>💰 Solicitar reembolso? WhatsApp (7 dias)</li>
+                    <li>💎 Dúvidas sobre planos? Fale conosco</li>
+                </ul>
+            </div>
+
+            <button onclick="fecharModalAjuda()" style="width:100%; background:#e0e0e0; border:none; padding:14px; border-radius:10px; cursor:pointer; font-weight:600; margin-top:20px;">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <script>
+    function mostrarModalAjuda() {
+        document.getElementById('modalAjuda').style.display = 'flex';
+    }
+
+    function fecharModalAjuda() {
+        document.getElementById('modalAjuda').style.display = 'none';
+    }
+    </script>
+
+    <style>
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(233,69,96,0.4); }
+            50% { box-shadow: 0 8px 32px rgba(233,69,96,0.6); }
+        }
+    </style>
 </body>
 </html>
