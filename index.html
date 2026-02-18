@@ -473,6 +473,29 @@
             box-shadow: 0 6px 20px rgba(37,211,102,0.4);
         }
 
+        .btn-instagram {
+            background: linear-gradient(135deg, #E1306C 0%, #C13584 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(225,48,108,0.3);
+        }
+
+        .btn-instagram:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(225,48,108,0.4);
+        }
+
         .btn-avaliar {
             background: white;
             color: var(--accent);
@@ -780,9 +803,9 @@
 <!-- HERO -->
 <div class="hero">
     <div style="max-width:900px; margin:0 auto; position:relative; z-index:1;">
-        <div class="hero-badge">🏆 #1 Plataforma de Gesseiros em Grajaú</div>
-        <h1>Encontre o <span>Gesseiro Perfeito</span><br>para sua Obra em Grajaú</h1>
-        <p style="font-size:20px; max-width:650px;">Compare preços, veja avaliações reais de clientes e contrate profissionais qualificados em minutos!</p>
+        <div class="hero-badge">🏗️ Seu Gesseiro está aqui!</div>
+        <h1>Encontre o <span>Seu Gesseiro</span><br>em Grajaú e Região</h1>
+        <p style="font-size:20px; max-width:650px;">Compare, veja avaliações e ache o SEU gesseiro ideal em minutos!</p>
         
         <div style="display:flex; gap:48px; justify-content:center; margin:36px 0; flex-wrap:wrap;">
             <div style="text-align:center;">
@@ -800,8 +823,9 @@
         </div>
 
         <div class="hero-buttons">
-            <a href="#gesseiros" class="btn-hero-primary" style="font-size:18px; padding:18px 40px;">🔍 Ver Gesseiros Agora</a>
+            <a href="#gesseiros" class="btn-hero-primary" style="font-size:18px; padding:18px 40px;">🔍 Encontrar Meu Gesseiro</a>
             <a href="cadastro-gesseiro.html" class="btn-hero-secondary">👷 Sou Gesseiro</a>
+            <a href="login.html" class="btn-hero-secondary">🔐 Login</a>
         </div>
     </div>
 </div>
@@ -809,22 +833,22 @@
 <!-- COMO FUNCIONA -->
 <div style="background:white; padding:80px 20px;">
     <div style="max-width:1200px; margin:0 auto; text-align:center;">
-        <h2 style="font-family:Sora; font-size:36px; font-weight:700; margin-bottom:48px;">Como Funciona?</h2>
+        <h2 style="font-family:Sora; font-size:36px; font-weight:700; margin-bottom:48px;">Como Encontrar o Seu Gesseiro?</h2>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:40px;">
             <div>
                 <div style="width:80px; height:80px; background:linear-gradient(135deg,#e94560,#c73652); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:36px; color:white; font-weight:800; box-shadow:0 8px 24px rgba(233,69,96,0.3);">1</div>
                 <h3 style="font-family:Sora; font-size:22px; margin-bottom:12px;">Busque</h3>
-                <p style="color:#666; line-height:1.6;">Navegue pelos perfis dos gesseiros, veja fotos de trabalhos anteriores e compare preços</p>
+                <p style="color:#666; line-height:1.6;">Veja os perfis, fotos dos trabalhos e encontre o gesseiro com a cara do seu projeto</p>
             </div>
             <div>
                 <div style="width:80px; height:80px; background:linear-gradient(135deg,#00b09b,#96c93d); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:36px; color:white; font-weight:800; box-shadow:0 8px 24px rgba(0,176,155,0.3);">2</div>
                 <h3 style="font-family:Sora; font-size:22px; margin-bottom:12px;">Compare</h3>
-                <p style="color:#666; line-height:1.6;">Veja avaliações de clientes reais e escolha o profissional que melhor atende suas necessidades</p>
+                <p style="color:#666; line-height:1.6;">Avaliações reais de quem já contratou. Escolha SEU gesseiro com segurança!</p>
             </div>
             <div>
                 <div style="width:80px; height:80px; background:linear-gradient(135deg,#f7c948,#f59e0b); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:36px; color:white; font-weight:800; box-shadow:0 8px 24px rgba(247,201,72,0.3);">3</div>
                 <h3 style="font-family:Sora; font-size:22px; margin-bottom:12px;">Contrate</h3>
-                <p style="color:#666; line-height:1.6;">Chame diretamente no WhatsApp e agende seu serviço de forma rápida e segura</p>
+                <p style="color:#666; line-height:1.6;">Chame SEU gesseiro no WhatsApp e agende agora mesmo!</p>
             </div>
         </div>
     </div>
@@ -833,7 +857,7 @@
 <!-- STATS BAR -->
 <div class="stats-bar">
     <div class="stat-item">
-        <strong id="statAvaliacoes2">...</strong>
+        <strong id="statAvaliacoes">...</strong>
         <span>⭐ Avaliações Realizadas</span>
     </div>
     <div class="stat-item">
@@ -849,8 +873,8 @@
 <!-- LISTA DE GESSEIROS -->
 <div class="container" id="gesseiros">
     <div class="section-header">
-        <h2>Gesseiros em Grajaú - MA</h2>
-        <p>Reboco, forro, sanca e gesso decorativo. Encontre o profissional certo para você.</p>
+        <h2>Seu Gesseiro está aqui!</h2>
+        <p>Compare, escolha e contrate. O gesseiro ideal para sua obra está esperando por você.</p>
     </div>
 
     <div class="filtros">
@@ -1170,6 +1194,7 @@ function criarCard(gesseiro) {
                 <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="event.stopPropagation(); registrarClique(${gesseiro.id}, 'whatsapp')">
                     💬 WhatsApp
                 </a>
+                ${gesseiro.instagram ? `<a href="https://instagram.com/${gesseiro.instagram.replace('@','')}" class="btn-instagram" target="_blank" onclick="event.stopPropagation(); registrarClique(${gesseiro.id}, 'instagram')">📷 Instagram</a>` : ''}
                 <button class="btn-avaliar" onclick="event.stopPropagation(); abrirModalAvaliacao(${gesseiro.id}, '${gesseiro.nome}')">
                     ⭐ Avaliar
                 </button>

@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">Gesseiro - SeuGesseiro</title>
-    <meta name="description" id="pageDescription" content="Perfil de gesseiro profissional em Grajaú-MA">
+    <meta name="description" id="pageDescription" content="Perfil de gesseiro profissional">
     <link rel="canonical" id="pageCanonical" href="https://seugesseiro.com.br/gesseiro.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_pMBr9EehGOeOyuVdH_peUfWVfDkCSKw"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,24 +15,30 @@
         :root {
             --primary: #1a1a2e;
             --accent: #e94560;
+            --green: #00b09b;
+            --gold: #f7c948;
             --light: #f8f9ff;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--light);
             color: var(--primary);
+            line-height: 1.6;
         }
 
         .header {
             background: var(--primary);
             color: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
         }
 
         .header-content {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -38,245 +46,217 @@
         }
 
         .logo {
-            font-size: 24px;
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
             font-weight: 800;
             text-decoration: none;
             color: white;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #2d2d44 100%);
+            padding: 60px 20px;
+            color: white;
         }
 
-        .perfil-header {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            gap: 30px;
+            gap: 40px;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .perfil-foto {
-            width: 120px;
-            height: 120px;
+        .hero-foto {
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--accent), #764ba2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 64px;
             color: white;
-            font-weight: 700;
+            font-weight: 800;
             overflow: hidden;
-            border: 4px solid #e0e0e0;
+            border: 6px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            flex-shrink: 0;
         }
 
-        .perfil-foto img {
+        .hero-foto img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .perfil-info {
-            flex: 1;
-        }
-
-        .perfil-info h1 {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .perfil-info .cidade {
-            color: #666;
-            font-size: 16px;
+        .hero-info h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
             margin-bottom: 12px;
         }
 
-        .perfil-info .descricao {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .avaliacoes {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .hero-info .cidade {
             font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 16px;
         }
 
-        .avaliacoes .estrelas {
-            color: #ffc107;
+        .hero-info .descricao {
+            font-size: 16px;
+            opacity: 0.85;
+            margin-bottom: 24px;
         }
 
         .badge-premium {
-            display: inline-block;
-            background: linear-gradient(135deg, #f7c948, #f59e0b);
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
             color: #92400e;
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 50px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
             margin-left: 12px;
+            box-shadow: 0 4px 12px rgba(247,201,72,0.4);
         }
 
-        .btn-whatsapp {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            padding: 16px 32px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
+        .avaliacoes-hero {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(37,211,102,0.3);
-            transition: all 0.3s;
+            gap: 12px;
         }
 
-        .btn-whatsapp:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37,211,102,0.4);
-        }
+        .avaliacoes-hero .estrelas { color: #ffc107; }
 
-        .section {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        .section h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
+        /* BOTÃO WHATSAPP FLUTUANTE */
+        .btn-whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 10px;
+            box-shadow: 0 8px 24px rgba(37,211,102,0.4);
+            z-index: 999;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(37,211,102,0.4); }
+            50% { box-shadow: 0 8px 32px rgba(37,211,102,0.6); }
+        }
+
+        .btn-instagram-float {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: linear-gradient(135deg, #E1306C, #C13584);
+            color: white;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(225,48,108,0.4);
+            z-index: 999;
+            animation: pulse-insta 2s infinite;
+        }
+
+        @keyframes pulse-insta {
+            0%, 100% { box-shadow: 0 8px 24px rgba(225,48,108,0.4); }
+            50% { box-shadow: 0 8px 32px rgba(225,48,108,0.6); }
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        .section {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .section h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 28px;
+            margin-bottom: 28px;
         }
 
         .servicos-grid {
             display: grid;
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .servico-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid var(--accent);
+        .servico-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 24px;
+            border-radius: 16px;
+            border-left: 5px solid var(--accent);
         }
 
-        .servico-item h3 {
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
+        .servico-card h3 { font-size: 20px; margin-bottom: 16px; }
 
-        .preco {
+        .preco-tag {
             display: inline-block;
-            background: #28a745;
+            background: linear-gradient(135deg, var(--green), #059669);
             color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            margin-right: 8px;
-            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 8px;
             font-weight: 600;
         }
 
         .fotos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .foto-item {
-            border-radius: 12px;
+        .foto-card {
+            border-radius: 16px;
             overflow: hidden;
             cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             transition: transform 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .foto-item:hover {
-            transform: scale(1.05);
-        }
+        .foto-card:hover { transform: translateY(-6px); }
 
-        .foto-item img {
+        .foto-card img {
             width: 100%;
-            height: 200px;
+            height: 240px;
             object-fit: cover;
         }
 
         .mapa {
             width: 100%;
-            height: 400px;
-            border-radius: 12px;
-            border: 2px solid #e0e0e0;
+            height: 450px;
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        .avaliacao-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-
-        .avaliacao-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .avaliacao-nome {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .avaliacao-estrelas {
-            color: #ffc107;
-        }
-
-        .avaliacao-texto {
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .erro {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--accent);
-        }
-
-        @media (max-width: 768px) {
-            .perfil-header {
-                text-align: center;
-                flex-direction: column;
-            }
-
-            .perfil-info h1 {
-                font-size: 24px;
-            }
-
-            .fotos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-        }
+        .loading { text-align: center; padding: 80px 20px; color: #999; }
+        .erro { text-align: center; padding: 80px 20px; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -284,12 +264,12 @@
 <div class="header">
     <div class="header-content">
         <a href="/" class="logo">🏗️ SeuGesseiro</a>
-        <a href="/" style="color: white; text-decoration: none;">← Voltar</a>
+        <a href="/" style="color:white; text-decoration:none;">← Voltar</a>
     </div>
 </div>
 
-<div class="container" id="container">
-    <div class="loading">Carregando perfil...</div>
+<div id="mainContent">
+    <div class="loading">🔍 Carregando perfil...</div>
 </div>
 
 <script>
@@ -297,7 +277,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const gesseiroId = urlParams.get('id');
 
 if (!gesseiroId) {
-    document.getElementById('container').innerHTML = '<div class="erro">❌ Gesseiro não especificado</div>';
+    document.getElementById('mainContent').innerHTML = '<div class="erro">❌ ID não especificado</div>';
 } else {
     carregarPerfil();
 }
@@ -306,18 +286,14 @@ async function carregarPerfil() {
     try {
         const response = await fetch(`/api/gesseiros/${gesseiroId}`);
         if (!response.ok) {
-            document.getElementById('container').innerHTML = '<div class="erro">❌ Gesseiro não encontrado</div>';
+            document.getElementById('mainContent').innerHTML = '<div class="erro">❌ Gesseiro não encontrado</div>';
             return;
         }
 
         const gesseiro = await response.json();
 
-        // Atualizar SEO
-        document.getElementById('pageTitle').textContent = `${gesseiro.nome} - Gesseiro em ${gesseiro.cidade}`;
-        document.getElementById('pageDescription').content = gesseiro.descricao;
-        document.getElementById('pageCanonical').href = `https://seugesseiro.com.br/gesseiro.html?id=${gesseiroId}`;
+        document.getElementById('pageTitle').textContent = `${gesseiro.nome} - ${gesseiro.cidade}`;
 
-        // Buscar dados adicionais
         const [fotosRes, servicosRes, avaliacoesRes, planoRes] = await Promise.all([
             fetch(`/api/gesseiros/${gesseiroId}/fotos`),
             fetch(`/api/gesseiros/${gesseiroId}/servicos`),
@@ -330,126 +306,97 @@ async function carregarPerfil() {
         const avaliacoes = await avaliacoesRes.json();
         const plano = await planoRes.json();
 
-        renderizarPerfil(gesseiro, fotos, servicos, avaliacoes, plano);
+        renderizar(gesseiro, fotos, servicos, avaliacoes, plano);
     } catch (err) {
-        console.error(err);
-        document.getElementById('container').innerHTML = '<div class="erro">❌ Erro ao carregar perfil</div>';
+        document.getElementById('mainContent').innerHTML = '<div class="erro">❌ Erro ao carregar</div>';
     }
 }
 
-function renderizarPerfil(gesseiro, fotos, servicos, avaliacoes, plano) {
-    const inicial = gesseiro.nome.charAt(0).toUpperCase();
-    const whatsappLink = gesseiro.telefone.replace(/\D/g, '');
-    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}! Vi seu perfil no SeuGesseiro e gostaria de um orçamento.`);
+function renderizar(g, fotos, servicos, avaliacoes, plano) {
+    const inicial = g.nome.charAt(0).toUpperCase();
+    const whatsapp = g.telefone.replace(/\D/g, '');
+    const msg = encodeURIComponent(`Olá ${g.nome}! Você é o meu gesseiro! Vi seu perfil e quero um orçamento.`);
 
     const badgePremium = plano.destaque ? '<span class="badge-premium">👑 PREMIUM</span>' : '';
+    const fotoHTML = g.foto_perfil ? `<img src="${g.foto_perfil}">` : inicial;
 
-    const fotoPerfilHTML = gesseiro.foto_perfil 
-        ? `<img src="${gesseiro.foto_perfil}" alt="${gesseiro.nome}">`
-        : inicial;
-
-    const avaliacoesHTML = gesseiro.total_avaliacoes > 0
-        ? `<div class="avaliacoes">
-            <span class="estrelas">${'⭐'.repeat(Math.round(gesseiro.media_avaliacoes))}</span>
-            <strong>${gesseiro.media_avaliacoes.toFixed(1)}</strong>
-            <span>(${gesseiro.total_avaliacoes} ${gesseiro.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})</span>
+    const avalHTML = g.total_avaliacoes > 0
+        ? `<div class="avaliacoes-hero">
+            <span class="estrelas">${'⭐'.repeat(Math.round(g.media_avaliacoes))}</span>
+            <strong>${g.media_avaliacoes.toFixed(1)}</strong>
+            <span>(${g.total_avaliacoes})</span>
            </div>`
-        : '<p style="color:#999;">Ainda sem avaliações</p>';
+        : '';
 
     let html = `
-        <div class="perfil-header">
-            <div class="perfil-foto">${fotoPerfilHTML}</div>
-            <div class="perfil-info">
-                <h1>${gesseiro.nome} ${badgePremium}</h1>
-                <p class="cidade">📍 ${gesseiro.cidade}</p>
-                <p class="descricao">${gesseiro.descricao || ''}</p>
-                ${avaliacoesHTML}
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-foto">${fotoHTML}</div>
+                <div class="hero-info">
+                    <h1>${g.nome}${badgePremium}</h1>
+                    <p class="cidade">📍 ${g.cidade}</p>
+                    <p class="descricao">${g.descricao || ''}</p>
+                    ${avalHTML}
+                </div>
             </div>
-            <a href="https://wa.me/55${whatsappLink}?text=${mensagem}" class="btn-whatsapp" target="_blank" onclick="registrarClique('whatsapp')">
-                💬 Chamar no WhatsApp
-            </a>
         </div>
+        <div class="container">
     `;
 
-    // SERVIÇOS
     if (servicos.length > 0) {
-        html += `<div class="section">
-            <h2>💰 Serviços e Preços</h2>
-            <div class="servicos-grid">`;
+        html += `<div class="section"><h2>💰 Serviços</h2><div class="servicos-grid">`;
         servicos.forEach(s => {
-            html += `
-                <div class="servico-item">
-                    <h3>${s.nome_servico}</h3>
-                    <p>
-                        <span class="preco">Com Material: R$ ${s.preco_com_material.toFixed(2)}/${s.unidade}</span>
-                        <span class="preco" style="background:#17a2b8;">Sem Material: R$ ${s.preco_sem_material.toFixed(2)}/${s.unidade}</span>
-                    </p>
-                    <p style="font-size:13px; color:#666; margin-top:8px;">📍 Atende até ${s.distancia_maxima}km</p>
-                </div>
-            `;
+            html += `<div class="servico-card">
+                <h3>${s.nome_servico}</h3>
+                <span class="preco-tag">Com: R$ ${s.preco_com_material.toFixed(2)}/${s.unidade}</span>
+                <span class="preco-tag">Sem: R$ ${s.preco_sem_material.toFixed(2)}/${s.unidade}</span>
+                <p style="color:#666;margin-top:12px;">📍 Até ${s.distancia_maxima}km</p>
+            </div>`;
         });
         html += `</div></div>`;
     }
 
-    // FOTOS
     if (fotos.length > 0) {
-        html += `<div class="section">
-            <h2>📷 Portfólio (${fotos.length} fotos)</h2>
-            <div class="fotos-grid">`;
+        html += `<div class="section"><h2>📷 Portfólio (${fotos.length})</h2><div class="fotos-grid">`;
         fotos.forEach(f => {
-            html += `
-                <div class="foto-item" onclick="window.open('${f.url_foto}', '_blank')">
-                    <img src="${f.url_foto}" alt="${f.descricao || 'Trabalho'}">
-                </div>
-            `;
+            html += `<div class="foto-card" onclick="window.open('${f.url_foto}','_blank')">
+                <img src="${f.url_foto}">
+            </div>`;
         });
         html += `</div></div>`;
     }
 
-    // MAPA
-    if (gesseiro.latitude && gesseiro.longitude) {
-        html += `<div class="section">
-            <h2>📍 Localização</h2>
-            <p style="color:#666; margin-bottom:15px;">${gesseiro.endereco || 'Endereço não informado'}</p>
+    if (g.latitude && g.longitude) {
+        html += `<div class="section"><h2>📍 Localização</h2>
+            <p style="margin-bottom:20px;">${g.endereco || g.cidade}</p>
             <div id="mapa" class="mapa"></div>
         </div>`;
     }
 
-    // AVALIAÇÕES
-    if (avaliacoes.length > 0) {
-        html += `<div class="section">
-            <h2>⭐ Avaliações (${avaliacoes.length})</h2>`;
-        avaliacoes.forEach(a => {
-            html += `
-                <div class="avaliacao-item">
-                    <div class="avaliacao-header">
-                        <span class="avaliacao-nome">${a.nome_cliente}</span>
-                        <span class="avaliacao-estrelas">${'⭐'.repeat(a.nota)}</span>
-                    </div>
-                    <p class="avaliacao-texto">${a.comentario || ''}</p>
-                </div>
-            `;
-        });
-        html += `</div>`;
+    html += `</div>`;
+
+    html += `<a href="https://wa.me/55${whatsapp}?text=${msg}" 
+                class="btn-whatsapp-float" target="_blank" 
+                onclick="registrarClique('whatsapp')">💬 WhatsApp</a>`;
+
+    // Adicionar botão Instagram se tiver
+    if (g.instagram) {
+        const instaUsername = g.instagram.replace('@', '');
+        html += `<a href="https://instagram.com/${instaUsername}" 
+                    class="btn-instagram-float" target="_blank" 
+                    onclick="registrarClique('instagram')">📷 Instagram</a>`;
     }
 
-    document.getElementById('container').innerHTML = html;
+    document.getElementById('mainContent').innerHTML = html;
 
-    // Inicializar mapa
-    if (gesseiro.latitude && gesseiro.longitude && typeof google !== 'undefined') {
+    if (g.latitude && g.longitude && typeof google !== 'undefined') {
         setTimeout(() => {
             const map = new google.maps.Map(document.getElementById('mapa'), {
-                center: { lat: gesseiro.latitude, lng: gesseiro.longitude },
-                zoom: 15,
-                mapTypeControl: false,
-                streetViewControl: false
+                center: { lat: g.latitude, lng: g.longitude },
+                zoom: 15
             });
-            new google.maps.Marker({
-                position: { lat: gesseiro.latitude, lng: gesseiro.longitude },
-                map,
-                title: gesseiro.nome
-            });
-        }, 100);
+            new google.maps.Marker({ position: { lat: g.latitude, lng: g.longitude }, map });
+        }, 300);
     }
 }
 
@@ -460,11 +407,8 @@ async function registrarClique(tipo) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tipo })
         });
-    } catch (err) {
-        console.error('Erro ao registrar clique:', err);
-    }
+    } catch {}
 }
 </script>
-
 </body>
 </html>
