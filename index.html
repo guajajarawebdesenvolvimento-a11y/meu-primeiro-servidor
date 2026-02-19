@@ -1070,25 +1070,8 @@ async function carregarGesseiros() {
         const response = await fetch('/api/gesseiros');
         todosGesseiros = await response.json();
 
-        // Buscar planos de todos os gesseiros
-        for (let gesseiro of todosGesseiros) {
-            try {
-                const planoRes = await fetch(`/api/gesseiros/${gesseiro.id}/plano`);
-                const planoData = await planoRes.json();
-                gesseiro.plano = planoData.plano;
-                gesseiro.destaque = planoData.destaque;
-            } catch (err) {
-                gesseiro.plano = 'free';
-                gesseiro.destaque = false;
-            }
-        }
-
-        // Ordenar: Premium primeiro, depois por data
-        todosGesseiros.sort((a, b) => {
-            if (a.destaque && !b.destaque) return -1;
-            if (!a.destaque && b.destaque) return 1;
-            return new Date(b.data_cadastro) - new Date(a.data_cadastro);
-        });
+        // Plano e destaque já vêm da API (otimizado!)
+        // Não precisa mais buscar separadamente
 
         // Atualizar stats
         document.getElementById('statGesseiros').textContent = todosGesseiros.length;

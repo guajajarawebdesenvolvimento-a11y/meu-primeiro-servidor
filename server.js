@@ -486,34 +486,75 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 // ========== LISTAR GESSEIROS ==========
-app.get('/api/gesseiros', (req, res) => {
-  db.buscarGesseiros((err, gesseiros) => {
-    if (err) {
-      console.error('Erro ao buscar gesseiros:', err);
-      return res.status(500).json({ erro: 'Erro ao buscar gesseiros' });
-    }
+app.get('/api/gesseiros', async (req, res) => {
+  try {
+    // Buscar todos os gesseiros com plano em uma única query
+    const result = await db.pool.query(`
+      SELECT 
+        g.*,
+        COALESCE(p.tipo_plano, 'free') as plano_tipo,
+        COALESCE(p.status, 'ativo') as plano_status,
+        p.data_expiracao as plano_expiracao,
+        CASE 
+          WHEN p.tipo_plano = 'premium' AND p.status = 'ativo' 
+          AND (p.data_expiracao IS NULL OR p.data_expiracao > NOW()) 
+          THEN true 
+          ELSE false 
+        END as destaque
+      FROM gesseiros g
+      LEFT JOIN planos p ON g.id = p.gesseiro_id
+      ORDER BY 
+        destaque DESC,
+        g.data_cadastro DESC
+    `);
 
-    const promises = gesseiros.map(gesseiro => {
-      return new Promise((resolve) => {
-        db.buscarFotos(gesseiro.id, (err, fotos) => {
-          gesseiro.fotos = err ? [] : fotos;
+    const gesseiros = result.rows;
 
-          db.buscarServicos(gesseiro.id, (err, servicos) => {
-            gesseiro.servicos = err ? [] : servicos;
+    // Buscar fotos, serviços e avaliações em paralelo para todos
+    const [fotosAll, servicosAll, avaliacoesAll] = await Promise.all([
+      db.pool.query('SELECT * FROM fotos ORDER BY id'),
+      db.pool.query('SELECT * FROM servicos ORDER BY id'),
+      db.pool.query('SELECT * FROM avaliacoes ORDER BY id')
+    ]);
 
-            db.buscarAvaliacoes(gesseiro.id, (err, avaliacoes) => {
-              gesseiro.avaliacoes = err ? [] : avaliacoes;
-              resolve(gesseiro);
-            });
-          });
-        });
-      });
+    // Agrupar por gesseiro_id
+    const fotosPorGesseiro = {};
+    const servicosPorGesseiro = {};
+    const avaliacoesPorGesseiro = {};
+
+    fotosAll.rows.forEach(f => {
+      if (!fotosPorGesseiro[f.gesseiro_id]) fotosPorGesseiro[f.gesseiro_id] = [];
+      fotosPorGesseiro[f.gesseiro_id].push(f);
     });
 
-    Promise.all(promises).then(gesseirosCompletos => {
-      res.json(gesseirosCompletos);
+    servicosAll.rows.forEach(s => {
+      if (!servicosPorGesseiro[s.gesseiro_id]) servicosPorGesseiro[s.gesseiro_id] = [];
+      servicosPorGesseiro[s.gesseiro_id].push(s);
     });
-  });
+
+    avaliacoesAll.rows.forEach(a => {
+      if (!avaliacoesPorGesseiro[a.gesseiro_id]) avaliacoesPorGesseiro[a.gesseiro_id] = [];
+      avaliacoesPorGesseiro[a.gesseiro_id].push(a);
+    });
+
+    // Montar resposta completa
+    const gesseirosCompletos = gesseiros.map(g => ({
+      ...g,
+      fotos: fotosPorGesseiro[g.id] || [],
+      servicos: servicosPorGesseiro[g.id] || [],
+      avaliacoes: avaliacoesPorGesseiro[g.id] || [],
+      // Calcular média de avaliações
+      total_avaliacoes: avaliacoesPorGesseiro[g.id]?.length || 0,
+      media_avaliacoes: avaliacoesPorGesseiro[g.id]?.length 
+        ? (avaliacoesPorGesseiro[g.id].reduce((sum, a) => sum + a.nota, 0) / avaliacoesPorGesseiro[g.id].length).toFixed(1)
+        : 0
+    }));
+
+    res.json(gesseirosCompletos);
+  } catch (err) {
+    console.error('Erro ao buscar gesseiros:', err);
+    res.status(500).json({ erro: 'Erro ao buscar gesseiros' });
+  }
 });
 
 // ========== BUSCAR GESSEIRO POR ID ==========
