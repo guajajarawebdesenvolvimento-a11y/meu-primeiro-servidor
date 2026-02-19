@@ -498,14 +498,20 @@ app.get('/api/gesseiros', async (req, res) => {
         CASE 
           WHEN p.tipo_plano = 'premium' AND p.status = 'ativo' 
           AND (p.data_expiracao IS NULL OR p.data_expiracao > NOW()) 
+          THEN 3
+          WHEN p.tipo_plano = 'profissional' AND p.status = 'ativo'
+          AND (p.data_expiracao IS NULL OR p.data_expiracao > NOW())
+          THEN 2
+          ELSE 1
+        END as prioridade_plano,
+        CASE 
+          WHEN p.tipo_plano = 'premium' AND p.status = 'ativo' 
+          AND (p.data_expiracao IS NULL OR p.data_expiracao > NOW()) 
           THEN true 
           ELSE false 
         END as destaque
       FROM gesseiros g
       LEFT JOIN planos p ON g.id = p.gesseiro_id
-      ORDER BY 
-        destaque DESC,
-        g.data_cadastro DESC
     `);
 
     const gesseiros = result.rows;
@@ -538,17 +544,47 @@ app.get('/api/gesseiros', async (req, res) => {
     });
 
     // Montar resposta completa
-    const gesseirosCompletos = gesseiros.map(g => ({
-      ...g,
-      fotos: fotosPorGesseiro[g.id] || [],
-      servicos: servicosPorGesseiro[g.id] || [],
-      avaliacoes: avaliacoesPorGesseiro[g.id] || [],
-      // Calcular média de avaliações
-      total_avaliacoes: avaliacoesPorGesseiro[g.id]?.length || 0,
-      media_avaliacoes: avaliacoesPorGesseiro[g.id]?.length 
-        ? (avaliacoesPorGesseiro[g.id].reduce((sum, a) => sum + a.nota, 0) / avaliacoesPorGesseiro[g.id].length).toFixed(1)
-        : 0
-    }));
+    const gesseirosCompletos = gesseiros.map(g => {
+      const avaliacoes = avaliacoesPorGesseiro[g.id] || [];
+      const totalAvaliacoes = avaliacoes.length;
+      const mediaAvaliacoes = totalAvaliacoes 
+        ? avaliacoes.reduce((sum, a) => sum + a.nota, 0) / totalAvaliacoes
+        : 0;
+
+      return {
+        ...g,
+        fotos: fotosPorGesseiro[g.id] || [],
+        servicos: servicosPorGesseiro[g.id] || [],
+        avaliacoes: avaliacoes,
+        total_avaliacoes: totalAvaliacoes,
+        media_avaliacoes: parseFloat(mediaAvaliacoes.toFixed(1))
+      };
+    });
+
+    // ORDENAÇÃO INTELIGENTE:
+    // 1. Plano (Premium > Profissional > Free)
+    // 2. Média de avaliações (maior primeiro)
+    // 3. Quantidade de avaliações (mais avaliações primeiro)
+    // 4. Data de cadastro (mais recente primeiro)
+    gesseirosCompletos.sort((a, b) => {
+      // 1. Prioridade de plano
+      if (a.prioridade_plano !== b.prioridade_plano) {
+        return b.prioridade_plano - a.prioridade_plano;
+      }
+      
+      // 2. Média de avaliações (quem tem melhor nota)
+      if (a.media_avaliacoes !== b.media_avaliacoes) {
+        return b.media_avaliacoes - a.media_avaliacoes;
+      }
+      
+      // 3. Quantidade de avaliações (quem tem mais avaliações)
+      if (a.total_avaliacoes !== b.total_avaliacoes) {
+        return b.total_avaliacoes - a.total_avaliacoes;
+      }
+      
+      // 4. Data de cadastro (mais recente)
+      return new Date(b.data_cadastro) - new Date(a.data_cadastro);
+    });
 
     res.json(gesseirosCompletos);
   } catch (err) {
