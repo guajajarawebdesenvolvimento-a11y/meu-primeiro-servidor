@@ -395,16 +395,19 @@
 
         .servico-precos {
             display: flex;
-            gap: 6px;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .preco-tag {
             background: var(--accent2);
             color: white;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
+            display: inline-block;
         }
 
         .preco-tag.sem {
@@ -1121,11 +1124,11 @@ function criarCard(gesseiro) {
     let precosHTML = '';
     if (gesseiro.servicos && gesseiro.servicos.length > 0) {
         const rows = gesseiro.servicos.slice(0,3).map(s => `
-            <div class="servico-row">
-                <span class="servico-nome">${s.nome_servico}</span>
+            <div class="servico-row" style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+                <strong class="servico-nome" style="display: block; margin-bottom: 8px; color: #1a1a2e;">${s.nome_servico}</strong>
                 <div class="servico-precos">
-                    <span class="preco-tag">R$${parseFloat(s.preco_com_material).toFixed(0)}/${s.unidade}</span>
-                    <span class="preco-tag sem">R$${parseFloat(s.preco_sem_material).toFixed(0)}/${s.unidade}</span>
+                    <span class="preco-tag">💰 Com material: <strong>R$${parseFloat(s.preco_com_material).toFixed(0)}</strong>/${s.unidade}</span>
+                    <span class="preco-tag sem">🔨 Mão de obra: <strong>R$${parseFloat(s.preco_sem_material).toFixed(0)}</strong>/${s.unidade}</span>
                 </div>
             </div>`).join('');
         precosHTML = `<div class="card-precos"><h4>💰 Tabela de Preços</h4>${rows}</div>`;
