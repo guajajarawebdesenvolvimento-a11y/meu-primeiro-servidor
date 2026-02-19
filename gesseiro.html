@@ -282,6 +282,17 @@ if (!gesseiroId) {
     carregarPerfil();
 }
 
+// Função para atualizar ou criar meta tags Open Graph
+function atualizarMetaTag(property, content) {
+    let metaTag = document.querySelector(`meta[property="${property}"]`);
+    if (!metaTag) {
+        metaTag = document.createElement('meta');
+        metaTag.setAttribute('property', property);
+        document.head.appendChild(metaTag);
+    }
+    metaTag.setAttribute('content', content);
+}
+
 async function carregarPerfil() {
     try {
         const response = await fetch(`/api/gesseiros/${gesseiroId}`);
@@ -293,6 +304,22 @@ async function carregarPerfil() {
         const gesseiro = await response.json();
 
         document.getElementById('pageTitle').textContent = `${gesseiro.nome} - ${gesseiro.cidade}`;
+        
+        // Atualizar meta tags Open Graph para compartilhamento
+        const descricao = gesseiro.descricao || `Gesseiro profissional em ${gesseiro.cidade}`;
+        const fotoUrl = gesseiro.foto_perfil || 'https://seugesseiro.com.br/logo-default.png';
+        const url = window.location.href;
+        
+        // Atualizar ou criar meta tags
+        atualizarMetaTag('og:title', `${gesseiro.nome} - Seu Gesseiro em ${gesseiro.cidade}`);
+        atualizarMetaTag('og:description', descricao);
+        atualizarMetaTag('og:image', fotoUrl);
+        atualizarMetaTag('og:url', url);
+        atualizarMetaTag('og:type', 'profile');
+        
+        // WhatsApp específico
+        atualizarMetaTag('og:site_name', 'SeuGesseiro');
+        document.getElementById('pageDescription').setAttribute('content', descricao);
 
         const [fotosRes, servicosRes, avaliacoesRes, planoRes] = await Promise.all([
             fetch(`/api/gesseiros/${gesseiroId}/fotos`),
@@ -315,7 +342,7 @@ async function carregarPerfil() {
 function renderizar(g, fotos, servicos, avaliacoes, plano) {
     const inicial = g.nome.charAt(0).toUpperCase();
     const whatsapp = g.telefone.replace(/\D/g, '');
-    const msg = encodeURIComponent(`Olá ${g.nome}! Você é o meu gesseiro! Vi seu perfil e quero um orçamento.`);
+    const msg = encodeURIComponent(`Olá ${g.nome}, vi seu contato no seugesseiro.com.br e gostaria de fazer um orçamento.`);
 
     const badgePremium = plano.destaque ? '<span class="badge-premium">👑 PREMIUM</span>' : '';
     const fotoHTML = g.foto_perfil ? `<img src="${g.foto_perfil}">` : inicial;

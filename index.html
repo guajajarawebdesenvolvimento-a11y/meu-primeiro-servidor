@@ -1105,7 +1105,7 @@ function criarCard(gesseiro) {
     card.onclick = () => window.location.href = `/gesseiro.html?id=${gesseiro.id}`;
 
     const whatsappLink = gesseiro.telefone.replace(/\D/g,'');
-    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, encontrei seu perfil no SeuGesseiro Grajaú!`);
+    const mensagem = encodeURIComponent(`Olá ${gesseiro.nome}, vi seu contato no seugesseiro.com.br e gostaria de fazer um orçamento.`);
     const inicial = gesseiro.nome.charAt(0).toUpperCase();
 
     // Avaliações
@@ -1185,7 +1185,7 @@ function criarCard(gesseiro) {
                     ⭐ Avaliar
                 </button>
             </div>
-            <button class="btn-compartilhar" style="margin-top:10px;" onclick="event.stopPropagation(); compartilharPerfil(${gesseiro.id}, '${gesseiro.nome.replace(/'/g, "\\'")}')">
+            <button class="btn-compartilhar" style="margin-top:10px;" onclick="event.stopPropagation(); compartilharPerfil(${gesseiro.id}, '${gesseiro.nome.replace(/'/g, "\\'")}', '${(gesseiro.descricao || '').replace(/'/g, "\\'").substring(0, 100)}')">
                 🔗 Compartilhar
             </button>
         </div>`;
@@ -1227,9 +1227,10 @@ async function registrarClique(gesseiroId, tipo) {
 }
 
 // ========== COMPARTILHAR PERFIL ==========
-async function compartilharPerfil(gesseiroId, nomeGesseiro) {
+async function compartilharPerfil(gesseiroId, nomeGesseiro, descricao = '') {
     const url = `${window.location.origin}/gesseiro.html?id=${gesseiroId}`;
-    const texto = `Olha esse gesseiro profissional: ${nomeGesseiro}!`;
+    const textoDescricao = descricao ? `${descricao}. ` : '';
+    const texto = `Olá, eu sou ${nomeGesseiro}, seu gesseiro! ${textoDescricao}Como posso servir?`;
     
     registrarClique(gesseiroId, 'compartilhar');
 
