@@ -724,6 +724,8 @@
         // SALVAR PERFIL
         document.getElementById('formPerfil').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            console.log('🔍 Iniciando salvamento do perfil...');
 
             const dados = {
                 nome: document.getElementById('nome').value,
@@ -733,6 +735,8 @@
                 descricao: document.getElementById('descricao').value,
                 endereco: document.getElementById('endereco').value
             };
+            
+            console.log('📝 Dados coletados:', dados);
 
             // Pegar coordenadas do mapa
             const lat = document.getElementById('latitude').value;
@@ -740,9 +744,13 @@
             if (lat && lng) {
                 dados.latitude = parseFloat(lat);
                 dados.longitude = parseFloat(lng);
+                console.log('📍 Coordenadas:', { lat, lng });
             }
 
             try {
+                console.log('🚀 Enviando requisição para:', `/api/gesseiros/${gesseiroId}`);
+                console.log('🔑 Token:', token ? 'Existe' : 'NÃO EXISTE!');
+                
                 const response = await fetch(`/api/gesseiros/${gesseiroId}`, {
                     method: 'PUT',
                     headers: {
@@ -751,15 +759,23 @@
                     },
                     body: JSON.stringify(dados)
                 });
+                
+                console.log('📡 Status da resposta:', response.status);
 
                 if (response.ok) {
+                    const resultado = await response.json();
+                    console.log('✅ Resposta do servidor:', resultado);
+                    
                     localStorage.setItem('nomeGesseiro', dados.nome);
                     document.getElementById('boasVindas').textContent = `Olá, ${dados.nome}! 🎉`;
                     mostrarAlerta('✅ Perfil atualizado com sucesso!', 'success');
                 } else {
-                    mostrarAlerta('❌ Erro ao atualizar perfil', 'error');
+                    const erro = await response.json();
+                    console.error('❌ Erro do servidor:', erro);
+                    mostrarAlerta(`❌ Erro: ${erro.erro || 'Erro ao atualizar perfil'}`, 'error');
                 }
             } catch (error) {
+                console.error('❌ Erro na requisição:', error);
                 mostrarAlerta('❌ Erro ao conectar com servidor', 'error');
             }
         });

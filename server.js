@@ -614,22 +614,30 @@ app.put('/api/gesseiros/:id', verificarToken, (req, res) => {
   const id = parseInt(req.params.id);
   const { nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude } = req.body;
 
+  console.log('📝 PUT /api/gesseiros/:id recebido');
+  console.log('   ID:', id);
+  console.log('   gesseiroId do token:', req.gesseiroId);
+  console.log('   Dados:', { nome, cidade, telefone });
+
   if (req.gesseiroId !== id) {
+    console.log('❌ Permissão negada: gesseiroId diferente');
     return res.status(403).json({ erro: 'Você não tem permissão para editar este perfil!' });
   }
   if (!nome || !cidade || !telefone) {
+    console.log('❌ Campos obrigatórios faltando');
     return res.status(400).json({ erro: 'Nome, cidade e telefone são obrigatórios' });
   }
 
   db.atualizarGesseiro(id, { nome, cidade, telefone, email, instagram, descricao, endereco, latitude, longitude }, (err, result) => {
     if (err) {
-      console.error('Erro ao atualizar:', err);
+      console.error('❌ Erro ao atualizar:', err);
       return res.status(500).json({ erro: 'Erro ao atualizar' });
     }
     if (result.changes === 0) {
+      console.log('❌ Gesseiro não encontrado');
       return res.status(404).json({ erro: 'Gesseiro não encontrado' });
     }
-    console.log('✅ Gesseiro atualizado:', nome);
+    console.log('✅ Gesseiro atualizado com sucesso:', nome);
     res.json({ mensagem: 'Gesseiro atualizado com sucesso!', id });
   });
 });
@@ -1255,7 +1263,8 @@ app.get('/api/gesseiros/:id/plano', async (req, res) => {
       return res.json({ plano: 'free', ativo: true, fotos: 3, servicos: 2, destaque: false });
     }
     const plano = result.rows[0];
-    const ativo = plano.status === 'ativo' && new Date(plano.data_expiracao) > new Date();
+    // Se status é ativo E (não tem data de expiração OU data ainda não passou)
+    const ativo = plano.status === 'ativo' && (!plano.data_expiracao || new Date(plano.data_expiracao) > new Date());
     res.json({
       plano: ativo ? plano.tipo_plano : 'free',
       ativo,
